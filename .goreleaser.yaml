@@ -1,0 +1,44 @@
+version: 2
+
+project_name: ccu-ai-mcp
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - binary: ccu-ai-mcp
+    flags:
+     - -trimpath
+    ldflags:
+     - -s -w -X main.appVersion={{.Version}}
+    targets:
+      - windows_amd64_v1
+      - linux_amd64_v1
+      # all Raspberry Pi versions
+      - linux_arm_6
+      - darwin_amd64_v1
+      - darwin_arm64_v8.0
+
+archives:
+  - formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    builds_info:
+      mode: 0755
+    files:
+      - LICENSE.txt
+      - README.md
+      - tools.toml
+      - src: config.template.toml
+        dst: config.toml
+      - src: tools.template.toml
+        dst: tools.toml
+
+release:
+  skip_upload: true # temporary disable upload
+  github:
+    owner: mdzio
+    name: ccu-ai-mcp
+  draft: true

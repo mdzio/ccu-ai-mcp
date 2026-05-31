@@ -1,0 +1,49 @@
+# This file contains the general configuration for the CCU-AI-MCP server.
+
+# For more information about the TOML format, see the official specification:
+# https://toml.io/en/v1.1.0
+
+[general]
+# Log level for the application. Valid values: DEBUG, INFO, WARN, ERROR
+logLevel = 'INFO'
+
+# Path to the tools configuration file
+toolFile = 'tools.toml'
+
+[ccu]
+# Specifies the IP address or hostname of the CCU.
+address = 'homematic-raspi'
+
+# If authentication for the CCU network API is active, specify the user and
+# password. Otherwise, leave them empty.
+user = ''
+password = ''
+
+[mcp]
+# Transport type for MCP communication. Valid values: stdio, http, https
+transport = 'stdio'
+
+# Port for HTTP(S) transport
+port = 2080
+
+# Path to TLS certificate file for HTTPS transport (PEM format)
+certFile = ''
+
+# Path to TLS key file for HTTPS transport (PEM format)
+keyFile = ''
+
+# API key for MCP authentication using Bearer token. Leave empty to disable API
+# key checking.
+apiKey = ''
+
+# CORS allowed origins for browser-based MCP clients
+corsAllowedOrigins = ['*']
+
+# Instructions for the MCP server
+instructions = '''
+This server is used for communication with a Homematic IP CCU or an openCCU. 
+This is the central unit of a smart home. It allows querying sensors, controlling 
+actuators, and starting automations (programs). Additionally, the CCU configuration
+can be read. A commonly used parameter in tool calls is the ISEID. All objects in
+the CCU have this unique ID.
+'''

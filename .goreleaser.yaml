@@ -30,7 +30,6 @@ archives:
     files:
       - LICENSE.txt
       - README.md
-      - tools.toml
       - src: config.template.toml
         dst: config.toml
       - src: tools.template.toml

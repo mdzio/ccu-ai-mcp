@@ -44,7 +44,7 @@ Zur Installation vom CCU-AI-MCP muss die zur Rechnerplattform passende Datei in 
 Die Hauptkonfigurationsdatei kann über das Befehlszeilenargument `-config` angegeben werden. Standardmäßig wird im Arbeitsverzeichnis nach der Datei `config.toml` gesucht. In der Hauptkonfigurationsdatei wird mit der Option `toolFile` eine zweite Konfigurationsdatei referenziert, in der nur die Werkzeuge spezifiziert werden.
 
 Aufbau der Hauptkonfigurationsdatei mit Kommentaren:
-```
+```toml
 # This file contains the general configuration for the CCU-AI-MCP server.
 
 # For more information about the TOML format, see the official specification:
@@ -97,7 +97,7 @@ the CCU have this unique ID.
 ```
 
 Beispielauszug aus der Konfigurationsdatei für die Werkzeuge:
-```
+```toml
 [[tool]]
 name = 'list_programs'
 description = 'Lists all programs of the CCU. Active and visible flags are included.'
@@ -129,7 +129,27 @@ Gestartet wird _CCU-AI-MCP_ auf der Konsole mit `./ccu-ai-mcp` (Linux) bzw. `ccu
 
 ## Erstellung von Werkzeugen
 
-_TODO_
+Die Definition eines Tools erfolgt durch eine neue `[[tool]]` Sektion in der Werkzeugkonfigurationsdatei `tools.toml`.
+
+Folgende Optionen zur Konfiguration eines Tools existieren in der `[[tool]]` Sektion:
+
+Name        | Datentyp | Bedeutung
+------------|---|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+name        | string | Der Name des Werkzeug sollte von der Funktionalität abgeleitet sein: z.B. `list_programs`. Die Schreibweise sollte [snake_case](https://en.wikipedia.org/wiki/Snake_case) sein.
+description | string | Die Beschreibung sollte kurz die Funktionalität erläutern und die für das LLM in der Rückgabe erwartbaren Informationen auflisten.
+kind        | string | Als Art des Tools wird bisher nur `hm-script` unterstützt.
+enabled     | boolean | Hiermit können einzelne Tools aktiviert (`true`) oder deaktiviert (`false`) werden.
+script      | string | Falls die Art des Tools `hm-script` ist, muss hier eine Vorlage für das auszuführende HM-Skript angegeben werden. Das HM-Skript kann Platzhalter für Parameter enthalten, die vor der Ausführung von dem LLM gesetzt werden müssen. Am besten wird ein mehrzeiliges Skript mit drei Hochkomma eingeleitet und abgeschlossen.
+
+In der Skriptvorlage können Platzhalter für Parameter verwendet werden. Diese müssen durch doppelte geschweifte Klammern eingeschlossen werden, z.B. `{{ .iseid }}`. Jeder verwendete Parameter muss durch eine `[[tool.parameter]]` Sektion definiert werden. 
+
+Folgende Optionen zur Konfiguration eines Parameters existieren in der `[[tool.parameter]]` Sektion:
+
+Name | Datentyp | Bedeutung
+---|---|---
+name | string | Ein kurzer Bezeichner (ohne Leerzeichen) für den Parameter.
+description | string | Aus der Beschreibung des Parameters muss genau hervorgehen, wie das LLM diesen zu füllen hat.
+type | string | Der Datentyp des Parameters. Folgende Datentypen werden derzeit unterstützt: `string`, `integer`, `number` und `boolean`.
 
 ### Tipps
 
@@ -155,7 +175,7 @@ cwd = "<INSTALLATIONSVERZ.>"
 ```
 
 Vorlage für eine Netzwerkanbindung über HTTP-Transport:
-```
+```toml
 [[mcp_servers]]
 name = "ccu_smart_home"
 transport = "streamable-http"
@@ -164,7 +184,7 @@ url = "http://<CCU-AI-MCP RECHNER>:2080/mcp"
 `<CCU-AI-MCP RECHNER>` ist der Name oder die IP-Adresse des Rechners, auf dem der CCU-AI-MCP gestartet wurde.
 
 Vorlage mit HTTPS-Transport und API-Schlüssel:
-```
+```toml
 [[mcp_servers]]
 name = "ccu_smart_home"
 transport = "streamable-http"
@@ -181,7 +201,7 @@ headers = { "Authorization" = "Bearer <API SCHLÜSSEL>" }
   * `enable_telemetry = false`
   * `include_commit_signature = false` (bei Cloud-Modellen)
   * `enable_auto_update = false` (optional)
-
+* Damit _vibe_ im Betriebssystem (selbst) installierte CA-Zertifikate berücksichtigt, ist die Option`enable_system_trust_store = true` zu setzen.
 ## Entwicklerdokumentation
 
 * [Mistral Vibe Anwenderdokumentation](https://docs.mistral.ai/mistral-vibe/overview)

@@ -1,0 +1,393 @@
+# This file defines the list of tools available on the CCU-AI-MCP server.
+
+# For more information about the TOML format, see the official specification:
+# https://toml.io/en/v1.1.0
+
+# -----------------------------------------------------------------------------
+[[tool]]
+name = 'list_programs'
+description = 'Lists all programs of the CCU. Active and visible flags and last execution times are included.'
+kind = 'hm-script'
+enabled = true
+script = '''
+! Enumerating programs
+object eobj = dom.GetObject(ID_PROGRAMS);
+if (eobj) {
+	WriteLine("Result is a markdown table:");
+	WriteLine("| ISEID | Name | Description | Active | Visible | Last execution time |");
+	WriteLine("|-------|------|-------------|--------|---------|---------------------|");
+	string id;
+	integer count = 0;
+	foreach (id, eobj.EnumUsedIDs()) {
+		object obj = dom.GetObject(id);
+		WriteLine("| " # obj.ID() # " | " # obj.Name() # " | " # obj.PrgInfo() # " | " # obj.Active() # " | " #
+            obj.Visible() # " | " # obj.ProgramLastExecuteTime() # " |");
+		count = count + 1;
+	}
+	WriteLine("\nFound " # count # " programs.");
+} else {
+	WriteLine("ERROR: Object with ISEID ID_PROGRAMS not found.");
+}
+'''
+
+# -----------------------------------------------------------------------------
+[[tool]]
+name = 'execute_program'
+description = 'Executes a program on the CCU.'
+kind = 'hm-script'
+enabled = true
+script = '''
+! Executing program
+object pobj = dom.GetObject({{ .iseid }});
+if (pobj && pobj.Type()==OT_PROGRAM) {
+	pobj.ProgramExecute();
+	WriteLine("Progam executed successfully on CCU.");
+} else {
+	WriteLine("ERROR: Object with ISEID {{ .iseid }} not found or is not a program.");
+}
+
+'''
+
+[[tool.parameter]]
+name = "iseid"
+description = "ISEID of the program"
+type = "string"
+
+# -----------------------------------------------------------------------------
+[[tool]]
+name = 'list_system_variables'
+description = '''
+Enumerates all system variables in the CCU. Returns following properties: ISEID, Name,
+Description, Maximum, Unit, Minimum, Operations, Type, Value name 0 (only valid for types
+BOOL, ALARM), Value name 1 (only valid for types BOOL, ALARM), Value list (only valid for
+type ENUM) and programs referencing the variable.
+'''
+kind = 'hm-script'
+enabled = true
+script = '''
+! Enumerating system variables
+object sysVars = dom.GetObject(ID_SYSTEM_VARIABLES);
+if (sysVars) {
+	WriteLine("Result is a markdown table:");
+	WriteLine("| ISEID | Name | Description | Maximum | Unit | Minimum | Type | Value name 0 | Value name 1 | Value list | Programs |");
+	WriteLine("|-------|------|-------------|---------|------|---------|------|--------------|--------------|------------|----------|");
+	string id;
+	integer count = 0;
+	foreach (id, sysVars.EnumUsedIDs()) {
+		object sv = dom.GetObject(id);
+		integer vt = sv.ValueType();
+		integer st = sv.ValueSubType();
+		string outvt = "UNKNOWN";
+		if (vt == ivtBinary) {
+			if (st == istBool) {
+				outvt = "BOOL";
+			} elseif (st == istAlarm) {
+				outvt = "ALARM(BOOL)";
+			}
+		} elseif (vt == ivtInteger) {
+			if (st == istEnum) {
+				outvt = "ENUM(INTEGER)";
+			}
+		} elseif (vt == ivtFloat) {
+			outvt = "FLOAT";
+		} elseif (vt == ivtString) {
+			outvt = "STRING";
+		}
+		WriteLine("| " # id # " | " # sv.Name() # " | " # sv.DPInfo() # " | " # sv.ValueMax() # " | " #
+			sv.ValueUnit() # " | " # sv.ValueMin() # " | " # outvt # " | " #
+			sv.ValueName0() # " | " # sv.ValueName1() # " | " # sv.ValueList() # " | " #
+			sv.DPEnumUsagePrograms().Replace("\t", ",") # " |");
+		count = count + 1;
+	}
+	WriteLine("\nFound " # count # " system variables.");
+} else {
+	WriteLine("ERROR: Object with ISEID ID_SYSTEM_VARIABLES not found.");
+}
+'''
+
+# -----------------------------------------------------------------------------
+[[tool]]
+name = 'read_data_points'
+description = '''
+Reads values from multiple data points. Returns read result (OK or ERROR), value and timestamp
+for each data point.
+'''
+kind = 'hm-script'
+enabled = true
+script = '''
+! Reading multiple data points
+WriteLine("Result is a markdown table:");
+WriteLine("| ISEID | Read result | Value | Timestamp |");
+WriteLine("|-------|-------------|-------|-----------|");
+string id; foreach(id,"{{range $i, $e := .iseids}}{{if $i}}\t{{end}}{{$e}}{{end}}") {
+	var dp=dom.GetObject(id);
+	if (dp) {
+		if (dp.IsTypeOf(OT_DP) || dp.IsTypeOf(OT_VARDP) || dp.IsTypeOf(OT_ALARMDP)) {
+			WriteLine("| " # id # " | OK | " # dp.Value().ToString().Replace("\n", "<br>") # " | " # dp.Timestamp() # " |");
+		} else {
+			WriteLine("| " # id # " | ERROR: Object has wrong type |  |  |");
+		}
+	} else {
+		WriteLine("| " # id # " | ERROR: ISEID not found |  |  |");
+	}
+}
+'''
+
+[[tool.parameter]]
+name = "iseids"
+description = "List of ISEIDs of data points to read"
+type = "string[]"
+
+# -----------------------------------------------------------------------------
+[[tool]]
+name = 'write_data_point'
+description = 'Writes a value to a data point on the CCU.'
+kind = 'hm-script'
+enabled = true
+script = '''
+! Writing data point
+var sv=dom.GetObject({{ .iseid }});
+if (sv) {
+	if (sv.IsTypeOf(OT_DP) || sv.IsTypeOf(OT_VARDP) || sv.IsTypeOf(OT_ALARMDP)) {
+		sv.State({{ printf "%#v" .value }});
+		WriteLine("OK"); 
+	} else {
+		WriteLine("ERROR: Object with ISEID {{ .iseid }} is not of type DP, VARDP or ALARMDP.");
+	}
+} else {
+	WriteLine("ERROR: Object with ISEID {{ .iseid }} not found.");
+}
+'''
+
+[[tool.parameter]]
+name = "iseid"
+description = "ISEID of the data point"
+type = "string"
+
+[[tool.parameter]]
+name = "value"
+description = "Value to write to the data point"
+type = "any"
+
+# -----------------------------------------------------------------------------
+[[tool]]
+name = 'list_rooms'
+description = 'Lists all configured rooms of the CCU.'
+kind = 'hm-script'
+enabled = true
+script = '''
+! Enumerating rooms
+object eobj = dom.GetObject(ID_ROOMS);
+if (eobj) {
+	WriteLine("Result is a markdown table:");
+	WriteLine("| ISEID | Name | Info |");
+	WriteLine("|-------|------|------|");
+	string id;
+	integer count = 0;
+	foreach (id, eobj.EnumUsedIDs()) {
+		object obj = dom.GetObject(id);
+		WriteLine("| " # obj.ID() # " | " # obj.Name() # " | " # obj.EnumInfo() # " |");
+		count = count + 1;
+	}
+	WriteLine("\nFound " # count # " rooms.");
+} else {
+	WriteLine("ERROR: Object with ISEID ID_ROOMS not found.");
+}
+'''
+
+# -----------------------------------------------------------------------------
+[[tool]]
+name = 'list_functions'
+description = 'Lists all functional groups of the CCU.'
+kind = 'hm-script'
+enabled = true
+script = '''
+! Enumerating functions
+object eobj = dom.GetObject(ID_FUNCTIONS);
+if (eobj) {
+	WriteLine("Result is a markdown table:");
+	WriteLine("| ISEID | Name | Info |");
+	WriteLine("|-------|------|------|");
+	string id;
+	integer count = 0;
+	foreach (id, eobj.EnumUsedIDs()) {
+		object obj = dom.GetObject(id);
+		WriteLine("| " # obj.ID() # " | " # obj.Name() # " | " # obj.EnumInfo() # " |");
+		count = count + 1;
+	}
+	WriteLine("\nFound " # count # " functional groups.");
+} else {
+	WriteLine("ERROR: Object with ISEID ID_FUNCTIONS not found.");
+}
+'''
+
+# -----------------------------------------------------------------------------
+[[tool]]
+name = 'list_devices'
+description = 'Lists all devices of the CCU with ISEID, name, type and address.'
+kind = 'hm-script'
+enabled = true
+script = '''
+! Enumerating devices
+object eobj = dom.GetObject(ID_DEVICES);
+if (eobj) {
+	WriteLine("Result is a markdown table:");
+	WriteLine("| ISEID | Name | Type | Address |");
+	WriteLine("|-------|------|------|---------|");
+	string id;
+	integer count = 0;
+	foreach (id, eobj.EnumUsedIDs()) {
+		object obj = dom.GetObject(id);
+		WriteLine("| " # obj.ID() # " | " # obj.Name() # " | " # obj.HssType() # " | " # obj.Address() # " |");
+		count = count + 1;
+	}
+	WriteLine("\nFound " # count # " devices.");
+} else {
+	WriteLine("ERROR: Object with ISEID ID_DEVICES not found.");
+}
+'''
+
+# -----------------------------------------------------------------------------
+[[tool]]
+name = 'list_channels_of_device'
+description = '''
+Lists all channels of a device with ISEID, name, address, room, functional group
+and programs referencing the channel.
+'''
+kind = 'hm-script'
+enabled = true
+script = '''
+! Enumerating channels
+object dobj = dom.GetObject({{ .iseid }});
+if (dobj && dobj.Type() == OT_DEVICE) {
+	WriteLine("Result is a markdown table:");
+	WriteLine("| ISEID | Name | Address | Room | Functional group | Programs |");
+	WriteLine("|-------|------|---------|------|------------------|----------|");
+	string cid;
+	integer count = 0;
+	foreach (cid, dobj.Channels()) {
+		var cobj = dom.GetObject(cid);
+		WriteLine("| " # cobj.ID() # " | " # cobj.Name() # " | " # cobj.Address() # " | " # 
+			cobj.ChnRoom().Replace("\t", ",") # " | " # 
+			cobj.ChnFunction().Replace("\t", ",") # " | " #
+			cobj.ChnEnumDPUsagePrograms().Replace("\t", ",") # " |");
+		count = count + 1;
+	}
+	WriteLine("\nFound " # count # " channels.");
+} else {
+	WriteLine("ERROR: Object with ISEID {{ .iseid }} not found or is not of type OT_DEVICE.");
+}
+'''
+
+[[tool.parameter]]
+name = "iseid"
+description = "ISEID of the device"
+type = "string"
+
+# -----------------------------------------------------------------------------
+[[tool]]
+name = 'list_data_points_of_channel'
+description = '''
+Lists all data points of a channel with ISEID, name, ... .
+'''
+kind = 'hm-script'
+enabled = true
+script = '''
+! Enumerating data points
+object ch = dom.GetObject({{ .iseid }});
+if (ch && (ch.Type() == OT_CHANNEL)) {
+	WriteLine("Result is a markdown table:");
+	WriteLine("| ISEID | Name | Data type | Operations |");
+	WriteLine("|-------|------|-----------|------------|");
+	string id;
+	integer count = 0;
+	foreach (id, ch.DPs().EnumUsedIDs()) {
+		var dp = dom.GetObject(id);
+		var vt = dp.ValueType();
+		var st = dp.ValueSubType();
+		var vtText = "";
+		if (vt == ivtBinary)
+		{
+			if (st == istAction) { vtText = "ACTION(BOOL)"; }
+			else { vtText = "BOOL"; }
+		}
+		elseif ((vt == ivtFloat) || (vt == ivtScaling)) { vtText = "FLOAT"; }
+		elseif (vt == ivtString) { vtText = "STRING"; }
+		elseif (vt == ivtByte) { vtText = "INTEGER"; }
+		elseif (vt == ivtInteger)
+		{
+			if (st == istEnum) { vtText = "ENUM(INTEGER)"; }
+			else { vtText = "INTEGER"; }
+		}
+		else { vtText = "UNKNOWN(" # vt # ")"; }
+		var ops = dp.Operations();
+		var opsText = "";
+		if (OPERATION_READ & ops) { opsText = opsText # "READ,"; }
+		if (OPERATION_WRITE & ops) { opsText = opsText # "WRITE,"; }
+		if (OPERATION_EVENT & ops) { opsText = opsText # "EVENT,"; }
+		if (opsText != "") {
+			opsText = opsText.Substr(0, opsText.Length() - 1);
+		}
+		WriteLine("| " # dp.ID() # " | " # dp.HssType() # " | " # vtText # " | " # opsText # " |");
+		count = count + 1;
+	}
+	WriteLine("\nFound " # count # " data points.");
+} else {
+	WriteLine("ERROR: Object with ISEID {{ .iseid }} not found or is not of type OT_CHANNEL.");
+}
+'''
+
+[[tool.parameter]]
+name = "iseid"
+description = "ISEID of the channel"
+type = "string"
+
+# -----------------------------------------------------------------------------
+[[tool]]
+name = 'read_service_messages'
+description = 'Reads all active device service messages (e.g. unreachable, battery low).'
+kind = 'hm-script'
+enabled = true
+script = '''
+! Enumerating service messages
+WriteLine("Result is a markdown table:");
+WriteLine("| ISEID | Device name | Device type | Service message | Since | Value |");
+WriteLine("|-------|-------------|-------------|-----------------|-------|-------|");
+
+string index;
+integer count = 0;
+foreach(index, dom.GetObject(ID_SERVICES).EnumIDs())
+{
+    object otmp = dom.GetObject(index);
+    if (otmp && otmp.IsTypeOf(OT_ALARMDP) && (otmp.AlState() == asOncoming))
+    {
+        object trigdp = dom.GetObject(otmp.AlTriggerDP());
+        object och = dom.GetObject(trigdp.Channel());
+        object odev = dom.GetObject(och.Device());
+
+        string name = odev.Name();
+        string type = odev.HssType();
+        string message = trigdp.HssType();
+        string since = otmp.AlOccurrenceTime().ToString("%d.%m.%Y %H:%M:%S");
+        var value = trigdp.Value();
+
+        WriteLine("| " # odev.ID() # " | " # name # " | " # type # " | " # message # " | " # since # " | " # value # " |");
+        count = count + 1;
+    }
+}
+WriteLine("\nFound " # count # " active service messages.");
+'''
+
+# -----------------------------------------------------------------------------
+[[tool]]
+name = 'read_system_info'
+description = 'Returns information about the CCU, e.g. CCU firmware version, product type, platform and ReGaHss build label.'
+kind = 'hm-script'
+enabled = true
+script = '''
+! Reading system info
+string versionFile;
+system.Exec("cat /VERSION", &versionFile);
+WriteLine(versionFile.Trim());
+WriteLine("ReGaHss build label: " # dom.BuildLabel());
+'''

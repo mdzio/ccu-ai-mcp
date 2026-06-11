@@ -149,11 +149,12 @@ Name | Datentyp | Bedeutung
 ---|---|---
 name | string | Ein kurzer Bezeichner (ohne Leerzeichen) für den Parameter.
 description | string | Aus der Beschreibung des Parameters muss genau hervorgehen, wie das LLM diesen zu füllen hat.
-type | string | Der Datentyp des Parameters. Folgende Datentypen werden derzeit unterstützt: `string`, `integer`, `number` und `boolean`.
+type | string | Der Datentyp des Parameters. Folgende Datentypen werden derzeit unterstützt: `string`, `integer`, `number`, `boolean`, `any`, `string[]`, `integer[]`, `number[]` und `boolean[]`.
 
 ### Tipps
 
 * Alle Skriptpfade sollten eine (Fehler-)Meldung an das LLM zurückgeben.
+* Eine leere Skriptrückgabe (z. B. durch ungültige HM-Skripte) oder eine Skriptrückgabe, die mit `ERROR:` beginnt, wird als Fehler an das LLM gemeldet.
 * In der Werkzeugbeschreibung `description` sollte erwähnt werden, welche Informationen das LLM als Rückgabe erwarten kann.
 * Tabellen sollten tabsepariert (TSV) sein und in der ersten Zeile Spaltenüberschriften besitzen. Falls die Tabelle keine Zeilen besitzt, sollte eine Meldung ausgegeben werden, dass keine Einträge vorhanden sind. Als Vorlage kann das Werkzeug `list_programs` genommen werden.
 

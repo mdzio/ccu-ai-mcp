@@ -81,6 +81,7 @@ func run() error {
 		server.WithDescription(appDescription),
 		server.WithInstructions(configMain.MCP.Instructions),
 		server.WithToolCapabilities(true),
+		server.WithInputSchemaValidation(),
 	)
 
 	// create tools

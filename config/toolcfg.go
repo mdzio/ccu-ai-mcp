@@ -70,14 +70,24 @@ const (
 	Integer
 	Number
 	Boolean
+	StringArray
+	IntegerArray
+	NumberArray
+	BooleanArray
+	Any
 )
 
 var (
 	paramTypeStr = []string{
-		String:  "string",
-		Integer: "integer",
-		Number:  "number",
-		Boolean: "boolean",
+		String:       "string",
+		Integer:      "integer",
+		Number:       "number",
+		Boolean:      "boolean",
+		StringArray:  "string[]",
+		IntegerArray: "integer[]",
+		NumberArray:  "number[]",
+		BooleanArray: "boolean[]",
+		Any:          "any",
 	}
 	errParamType = errors.New("invalid parameter type identifier")
 )

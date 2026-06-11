@@ -41,7 +41,7 @@ corsAllowedOrigins = ['*']
 
 # Instructions for the MCP server
 instructions = '''
-This server is used for communication with a Homematic IP CCU or an openCCU. 
+This MCP server is used for communication with a Homematic IP CCU or an openCCU. 
 This is the central unit of a smart home. It allows querying sensors, controlling 
 actuators, and starting automations (programs). Additionally, the CCU configuration
 can be read. A commonly used parameter in tool calls is the ISEID. All objects in

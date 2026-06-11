@@ -59,6 +59,30 @@ func createTools() ([]server.ServerTool, error) {
 				opts = append(opts, mcp.WithBoolean(param.Name,
 					mcp.Description(param.Description),
 					mcp.Required()))
+			case config.StringArray:
+				opts = append(opts, mcp.WithArray(param.Name,
+					mcp.WithStringItems(),
+					mcp.Description(param.Description),
+					mcp.Required()))
+			case config.IntegerArray:
+				opts = append(opts, mcp.WithArray(param.Name,
+					mcp.WithIntegerItems(),
+					mcp.Description(param.Description),
+					mcp.Required()))
+			case config.NumberArray:
+				opts = append(opts, mcp.WithArray(param.Name,
+					mcp.WithNumberItems(),
+					mcp.Description(param.Description),
+					mcp.Required()))
+			case config.BooleanArray:
+				opts = append(opts, mcp.WithArray(param.Name,
+					mcp.WithBooleanItems(),
+					mcp.Description(param.Description),
+					mcp.Required()))
+			case config.Any:
+				opts = append(opts, mcp.WithAny(param.Name,
+					mcp.Description(param.Description),
+					mcp.Required()))
 			default:
 				return nil, fmt.Errorf("unsupported parameter type %s in tool %s", param.Type, toolCfg.Name)
 			}
@@ -81,17 +105,15 @@ func createTools() ([]server.ServerTool, error) {
 			params := request.GetArguments()
 
 			// execute the script template with parameters
+			slog.Debug("Executing script with parameters", mapAsSlice(params)...)
 			resp, err := scriptClient.ExecuteTmpl(templ, params)
 			if err != nil {
-				return &mcp.CallToolResult{
-					Content: []mcp.Content{
-						mcp.TextContent{
-							Type: "text",
-							Text: fmt.Sprintf("Execution of the HM script for the tool failed: %v", err),
-						},
-					},
-					IsError: true,
-				}, nil
+				return mcp.NewToolResultErrorFromErr("Execution of the HM script for the tool failed", err), nil
+			}
+
+			// check for empty response
+			if len(resp) == 0 || (len(resp) == 1 && resp[0] == "") {
+				return mcp.NewToolResultError("Execution of the HM script returned empty result, the user should check the HM script of this tool"), nil
 			}
 
 			// build result text
@@ -110,7 +132,7 @@ func createTools() ([]server.ServerTool, error) {
 			return &mcp.CallToolResult{
 				Content: []mcp.Content{
 					mcp.TextContent{
-						Type: "text",
+						Type: mcp.ContentTypeText,
 						Text: resultText.String(),
 					},
 				},
@@ -125,4 +147,13 @@ func createTools() ([]server.ServerTool, error) {
 		})
 	}
 	return serverTools, nil
+}
+
+// mapAsSlice converts a map[string]any to []any for slog
+func mapAsSlice(m map[string]any) []any {
+	attrs := make([]any, 0, len(m)*2)
+	for k, v := range m {
+		attrs = append(attrs, k, v)
+	}
+	return attrs
 }

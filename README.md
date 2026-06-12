@@ -2,6 +2,40 @@
 
 _CCU-AI-MCP_ ist eine Implementierung des [Model Context Protocols](https://de.wikipedia.org/wiki/Model_Context_Protocol) (MCP) für die Smart-Home Zentrale [OpenCCU](https://openccu.de). Das Model Context Protocol dient zum Datenaustausch zwischen einer künstlichen Intelligenz (KI), insbesondere großen Sprachmodellen (LLM), und externen Systemen. OpenCCU ist ein freies und Open-Source-basiertes Betriebssystem für eine homematic IP© CCU-Zentrale. 
 
+Gegenüber anderen MCP-Servern, die einen festen Satz an Tools bereitstellen, können diese beim _CCU-AI-MCP_ einfach über die Werkzeugkonfigurationsdatei `tools.toml` angepasst und erweitert werden. An der _CCU_ selbst müssen keinerlei Einstellungen oder Anpassungen vorgenommen werden. Der Aufbau der Konfigurationsdatei ist relativ einfach und die Tools bestehen aus HM-Skripten, die zwar im _CCU-AI-MCP_ konfiguriert werden, aber **auf** der CCU ausgeführt werden. Besitzer einer CCU sind meistens schon in Kontakt mit HM-Skripten gekommen, sodass keine neue Programmiersprache erlernt werden muss. Zudem ermöglichen HM-Skripte den Zugriff auf die gesamte Projektierung und Konfiguration der CCU. Alle Skriptausgaben mit der Funktion `WriteLine()` werden automatisch an das LLM weitergeleitet.
+
+Folgende Werkzeuge (Tools) sind bereits implementiert:
+* `list_programs` – Listet alle CCU-Programme mit Status und letzter Ausführung
+* `execute_program` – Führt ein CCU-Programm aus
+* `list_system_variables` – Listet alle Systemvariablen mit Typ und Werten
+* `read_data_points` – Liest Werte mehrerer Datenpunkte
+* `write_data_point` – Schreibt einen Wert in einen Datenpunkt
+* `list_rooms` – Listet alle konfigurierten Räume
+* `list_functions` – Listet alle Gewerke
+* `list_devices` – Listet alle Geräte mit Typ und Adresse
+* `list_channels_of_device` – Listet alle Kanäle eines Geräts
+* `list_data_points_of_channel` – Listet alle Datenpunkte eines Kanals
+* `read_service_messages` – Liest aktive Servicemeldungen (z. B. Batterie leer)
+* `read_system_info` – Gibt CCU- und ReGaHss-Version zurück
+
+## Anwendungsbeispiele
+
+TODO
+
+## Projektstatus
+
+Das Projekt befindet sich in einer frühen Phase. Allerdings besitzt der _CCU-AI-MCP_ bereits die vollständige Basisfunktionalität und Werkzeuge können auch, wie oben beschrieben, angepasst und erweitert werden. Für die Installation und Konfiguration sind allerdings manuelle Eingriffe nötig.
+
+Hier ist noch eine Liste von Ideen für zukünftige Erweiterungen:
+* Ergänzung weiterer HM-Skripte (Hierbei ist Hilfe sehr willkommen.)
+  * Erstellung und Anpassung von Systemvariablen, Räumen und Gewerken
+  * Umbenennung von Geräten und Kanälen
+  * Änderung von Geräte-/Kanalparametern
+  * Analyse von Wenn/Dann-Programmen
+  * Erstellung von Wenn/Dann-Programmen
+* Anbindung des CCU-Historians
+* Für das LLM durchsuchbare Dokumentation aller HM-Geräte
+
 ## Funktionsweise
 
 _CCU-AI-MCP_ ist ein MCP-Server, der von KI-Agenten oder Dialogschnittstellen (Conversational-UI) angesteuert wird. Der KI-Agent ist Vermittler zwischen dem LLM und dem _CCU-AI-MCP_. Der Ablauf der Kommunikation zwischen den Komponenten ist wie folgt:
@@ -12,11 +46,9 @@ _CCU-AI-MCP_ ist ein MCP-Server, der von KI-Agenten oder Dialogschnittstellen (C
 
 Die Schritte 2 und 3 sind in der Regel für den Benutzer nicht sichtbar und können bei Bedarf auch mehrmals erfolgen.
 
-Gegenüber anderen MCP-Servern, die einen festen Satz an Tools bereitstellen, können diese beim _CCU-AI-MCP_ einfach über die Werkzeugkonfigurationsdatei `tools.toml` angepasst und erweitert werden. Der Aufbau der Konfigurationsdatei ist relativ einfach und die Tools bestehen aus HM-Skripten, die **auf** der CCU ausgeführt werden. Besitzer einer CCU sind meistens schon in Kontakt mit HM-Skripten gekommen, sodass keine neue Programmiersprache erlernt werden muss. Zudem ermöglichen HM-Skripte den Zugriff auf die gesamte Projektierung und Konfiguration der CCU. Alle Skriptausgaben mit der Funktion `WriteLine` werden automatisch an das LLM weitergeleitet.
-
 ## Sicherheit
 
-LLMs können sich fehlerhaft verhalten oder sehr kreativ werden, um eine gestellte Aufgabe doch noch zu lösen. Beim _CCU-AI-MCP_ kann das LLM nur die HM-Skripte ausführen, die in der Werkzeugkonfiguration hinterlegt sind. In der Standardkonfiguration sind zudem alle HM-Skripte, die Datenpunkte, die Konfiguration oder Projektierung der CCU ändern können, deaktiviert.
+LLMs können sich fehlerhaft verhalten oder sehr kreativ werden, um eine gestellte Aufgabe doch noch zu lösen. Beim _CCU-AI-MCP_ kann das LLM nur die HM-Skripte ausführen, die in der Werkzeugkonfiguration hinterlegt sind. Zudem können einzelne Werkzeuge in der Werkzeugkonfiguration deaktiviert werden.
 
 ## Voraussetzungen
 
@@ -52,7 +84,7 @@ Aufbau der Hauptkonfigurationsdatei mit Kommentaren:
 
 [general]
 # Log level for the application. Valid values: DEBUG, INFO, WARN, ERROR
-logLevel = 'DEBUG'
+logLevel = 'INFO'
 
 # Path to the tools configuration file
 toolFile = 'tools.toml'
@@ -88,7 +120,7 @@ corsAllowedOrigins = ['*']
 
 # Instructions for the MCP server
 instructions = '''
-This server is used for communication with a Homematic IP CCU or an openCCU. 
+This MCP server is used for communication with a Homematic IP CCU or an openCCU. 
 This is the central unit of a smart home. It allows querying sensors, controlling 
 actuators, and starting automations (programs). Additionally, the CCU configuration
 can be read. A commonly used parameter in tool calls is the ISEID. All objects in
@@ -100,25 +132,29 @@ Beispielauszug aus der Konfigurationsdatei für die Werkzeuge:
 ```toml
 [[tool]]
 name = 'list_programs'
-description = 'Lists all programs of the CCU. Active and visible flags are included.'
+description = 'Lists all programs of the CCU. Active and visible flags and last execution times are included.'
 kind = 'hm-script'
 enabled = true
 script = '''
+! Enumerating programs
 object eobj = dom.GetObject(ID_PROGRAMS);
 if (eobj) {
-	WriteLine("Result is a tab separated table with headers in the first line:");
-	WriteLine("ISEID\tName\tDescription\tActive\tVisible");
+	WriteLine("Result is a markdown table:");
+	WriteLine("| ISEID | Name | Description | Active | Visible | Last execution time |");
+	WriteLine("|-------|------|-------------|--------|---------|---------------------|");
 	string id;
 	integer count = 0;
-	foreach (id, eobj.EnumIDs()) {
+	foreach (id, eobj.EnumUsedIDs()) {
 		object obj = dom.GetObject(id);
-		WriteLine(obj.ID() # "\t" # obj.Name() # "\t" # obj.PrgInfo() # "\t" # obj.Active() # "\t" # obj.Visible());
+		WriteLine("| " # obj.ID() # " | " # obj.Name() # " | " # obj.PrgInfo() # " | " # obj.Active() # " | " #
+            obj.Visible() # " | " # obj.ProgramLastExecuteTime() # " |");
 		count = count + 1;
 	}
 	WriteLine("\nFound " # count # " programs.");
 } else {
 	WriteLine("ERROR: Object with ISEID ID_PROGRAMS not found.");
 }
+'''
 ```
 
 Relative Dateipfade für das Befehlszeilenargument `-config` oder die Konfigurationsoption `toolsFile` werden auf das Arbeitsverzeichnis bezogen.
@@ -156,7 +192,7 @@ type | string | Der Datentyp des Parameters. Folgende Datentypen werden derzeit 
 * Alle Skriptpfade sollten eine (Fehler-)Meldung an das LLM zurückgeben.
 * Eine leere Skriptrückgabe (z. B. durch ungültige HM-Skripte) oder eine Skriptrückgabe, die mit `ERROR:` beginnt, wird als Fehler an das LLM gemeldet.
 * In der Werkzeugbeschreibung `description` sollte erwähnt werden, welche Informationen das LLM als Rückgabe erwarten kann.
-* Tabellen sollten tabsepariert (TSV) sein und in der ersten Zeile Spaltenüberschriften besitzen. Falls die Tabelle keine Zeilen besitzt, sollte eine Meldung ausgegeben werden, dass keine Einträge vorhanden sind. Als Vorlage kann das Werkzeug `list_programs` genommen werden.
+* Tabellen sollten mit Markdown formatiert sein und in der ersten Zeile Spaltenüberschriften besitzen. Falls die Tabelle keine Zeilen besitzt, sollte eine Meldung ausgegeben werden, dass keine Einträge vorhanden sind. Als Vorlage kann das Werkzeug `list_programs` genommen werden.
 
 ## Einbindung in KI-Agenten
 

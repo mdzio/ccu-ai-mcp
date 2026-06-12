@@ -96,12 +96,14 @@ func run() error {
 	// serve MCP requests based on configuration
 	switch configMain.MCP.Transport {
 	case config.HTTP:
-		if err := serveHTTP(mcpServer, false); errors.Is(err, http.ErrServerClosed) {
+		err := serveHTTP(mcpServer, false)
+		if errors.Is(err, http.ErrServerClosed) {
 			return nil
 		}
 		return err
 	case config.HTTPS:
-		if err := serveHTTP(mcpServer, true); errors.Is(err, http.ErrServerClosed) {
+		err := serveHTTP(mcpServer, true)
+		if errors.Is(err, http.ErrServerClosed) {
 			return nil
 		}
 		return err

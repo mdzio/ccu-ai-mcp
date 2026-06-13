@@ -239,6 +239,11 @@ headers = { "Authorization" = "Bearer <API SCHLÜSSEL>" }
   * `include_commit_signature = false` (bei Cloud-Modellen)
   * `enable_auto_update = false` (optional)
 * Damit _vibe_ im Betriebssystem (selbst) installierte CA-Zertifikate berücksichtigt, ist die Option`enable_system_trust_store = true` zu setzen.
+
+### Instruktionen für Agenten (AGENTS.md)
+
+Viele Agenten können für ihre wahrzunehmende Aufgabe speziell instruiert werden. Dies erfolgt durch die Datei `AGENTS.md`. Ein zugeschnittenes Beispiel ist im Ordner `agents` zu finden.
+
 ## Entwicklerdokumentation
 
 * [Mistral Vibe Anwenderdokumentation](https://docs.mistral.ai/mistral-vibe/overview)

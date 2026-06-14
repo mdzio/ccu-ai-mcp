@@ -18,10 +18,6 @@ Folgende Werkzeuge (Tools) sind bereits implementiert:
 * `read_service_messages` – Liest aktive Servicemeldungen (z. B. Batterie leer)
 * `read_system_info` – Gibt CCU- und ReGaHss-Version zurück
 
-## Anwendungsbeispiele
-
-TODO
-
 ## Projektstatus
 
 Das Projekt befindet sich in einer frühen Phase. Allerdings besitzt der _CCU-AI-MCP_ bereits die vollständige Basisfunktionalität und Werkzeuge können auch, wie oben beschrieben, angepasst und erweitert werden. Für die Installation und Konfiguration sind allerdings manuelle Eingriffe nötig.

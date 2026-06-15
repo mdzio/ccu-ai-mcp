@@ -42,47 +42,30 @@ func createTools() ([]server.ServerTool, error) {
 
 		// add parameters
 		for _, param := range toolCfg.Parameters {
+			var propertyOpts []mcp.PropertyOption
+			propertyOpts = append(propertyOpts, mcp.Description(param.Description))
+			if !param.Optional {
+				propertyOpts = append(propertyOpts, mcp.Required())
+			}
 			switch param.Type {
 			case config.String:
-				opts = append(opts, mcp.WithString(param.Name,
-					mcp.Description(param.Description),
-					mcp.Required()))
+				opts = append(opts, mcp.WithString(param.Name, propertyOpts...))
 			case config.Number:
-				opts = append(opts, mcp.WithNumber(param.Name,
-					mcp.Description(param.Description),
-					mcp.Required()))
+				opts = append(opts, mcp.WithNumber(param.Name, propertyOpts...))
 			case config.Integer:
-				opts = append(opts, mcp.WithInteger(param.Name,
-					mcp.Description(param.Description),
-					mcp.Required()))
+				opts = append(opts, mcp.WithInteger(param.Name, propertyOpts...))
 			case config.Boolean:
-				opts = append(opts, mcp.WithBoolean(param.Name,
-					mcp.Description(param.Description),
-					mcp.Required()))
+				opts = append(opts, mcp.WithBoolean(param.Name, propertyOpts...))
 			case config.StringArray:
-				opts = append(opts, mcp.WithArray(param.Name,
-					mcp.WithStringItems(),
-					mcp.Description(param.Description),
-					mcp.Required()))
+				opts = append(opts, mcp.WithArray(param.Name, append([]mcp.PropertyOption{mcp.WithStringItems()}, propertyOpts...)...))
 			case config.IntegerArray:
-				opts = append(opts, mcp.WithArray(param.Name,
-					mcp.WithIntegerItems(),
-					mcp.Description(param.Description),
-					mcp.Required()))
+				opts = append(opts, mcp.WithArray(param.Name, append([]mcp.PropertyOption{mcp.WithIntegerItems()}, propertyOpts...)...))
 			case config.NumberArray:
-				opts = append(opts, mcp.WithArray(param.Name,
-					mcp.WithNumberItems(),
-					mcp.Description(param.Description),
-					mcp.Required()))
+				opts = append(opts, mcp.WithArray(param.Name, append([]mcp.PropertyOption{mcp.WithNumberItems()}, propertyOpts...)...))
 			case config.BooleanArray:
-				opts = append(opts, mcp.WithArray(param.Name,
-					mcp.WithBooleanItems(),
-					mcp.Description(param.Description),
-					mcp.Required()))
+				opts = append(opts, mcp.WithArray(param.Name, append([]mcp.PropertyOption{mcp.WithBooleanItems()}, propertyOpts...)...))
 			case config.Any:
-				opts = append(opts, mcp.WithAny(param.Name,
-					mcp.Description(param.Description),
-					mcp.Required()))
+				opts = append(opts, mcp.WithAny(param.Name, propertyOpts...))
 			default:
 				return nil, fmt.Errorf("unsupported parameter type %s in tool %s", param.Type, toolCfg.Name)
 			}

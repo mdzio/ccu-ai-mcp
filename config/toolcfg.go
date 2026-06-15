@@ -120,6 +120,7 @@ type Parameter struct {
 	Name        string    `toml:"name"`
 	Description string    `toml:"description"`
 	Type        ParamType `toml:"type"`
+	Optional    bool      `toml:"optional"`
 }
 
 // LoadTools reads and parses tools.toml into a Tools struct.

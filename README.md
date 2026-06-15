@@ -5,18 +5,28 @@ _CCU-AI-MCP_ ist eine Implementierung des [Model Context Protocols](https://de.w
 Gegenüber anderen MCP-Servern, die einen festen Satz an Tools bereitstellen, können diese beim _CCU-AI-MCP_ einfach über die Werkzeugkonfigurationsdatei `tools.toml` angepasst und erweitert werden. An der _CCU_ selbst müssen keinerlei Einstellungen oder Anpassungen vorgenommen werden. Der Aufbau der Konfigurationsdatei ist relativ einfach und die Tools bestehen aus HM-Skripten, die zwar im _CCU-AI-MCP_ konfiguriert werden, aber **auf** der CCU ausgeführt werden. Besitzer einer CCU sind meistens schon in Kontakt mit HM-Skripten gekommen, sodass keine neue Programmiersprache erlernt werden muss. Zudem ermöglichen HM-Skripte den Zugriff auf die gesamte Projektierung und Konfiguration der CCU. Alle Skriptausgaben mit der Funktion `WriteLine()` werden automatisch an das LLM weitergeleitet.
 
 Folgende Werkzeuge (Tools) sind bereits implementiert:
-* `list_programs` – Listet alle CCU-Programme mit Status und letzter Ausführung
+* `list_programs` – Listet alle CCU-Programme mit Eigenschaften und letzter Ausführung
+* `read_program` – Liest alle Eigenschaften, Regeln, Bedingungen, Zeitgebener und Aktionen eines CCU-Programms
+* `update_program` – Aktualisiert Eigenschaften eines CCU-Programms (z. B. Name, Beschreibung, aktiv, sichtbar, bedienbar)
 * `execute_program` – Führt ein CCU-Programm aus
-* `list_system_variables` – Listet alle Systemvariablen mit Typ und Werten
+* `list_system_variables` – Listet alle Systemvariablen mit Eigenschaften inkl. Referenzen zu Programmen
+* `list_devices` – Listet alle Geräte mit Typ und Adresse
+* `list_channels_of_device` – Listet alle Kanäle eines Geräts inkl. Referenzen zu Programmen
+* `list_data_points_of_channel` – Listet alle Datenpunkte eines Kanals
 * `read_data_points` – Liest Werte mehrerer Datenpunkte
 * `write_data_point` – Schreibt einen Wert in einen Datenpunkt
 * `list_rooms` – Listet alle konfigurierten Räume
 * `list_functions` – Listet alle Gewerke
-* `list_devices` – Listet alle Geräte mit Typ und Adresse
-* `list_channels_of_device` – Listet alle Kanäle eines Geräts
-* `list_data_points_of_channel` – Listet alle Datenpunkte eines Kanals
 * `read_service_messages` – Liest aktive Servicemeldungen (z. B. Batterie leer)
-* `read_system_info` – Gibt CCU- und ReGaHss-Version zurück
+* `read_alarm_messages` – Liest aktive Alarmsystemvariablen
+* `read_system_info` – Gibt Systeminformationen der CCU zurück, u.a. Firmware-Version, Dateisystem, Uptime und RAM-Nutzung
+* `execute_script` – Führt ein beliebiges HomeMatic-Skript auf der CCU aus
+
+## Bespiele für LLM-Prompts
+
+* Analysiere alle CCU-Programme und mache einen Vorschlag je Programm für eine kurze Beschreibung.
+* Übertrage diese Beschreibungen auf die CCU-Programme.
+* Wie ist die Ursache-Wirkungs-Kette vom Helligkeitssensor außen bis zum Rollladen im Wohnzimmer an der Terrasse?
 
 ## Projektstatus
 
@@ -26,7 +36,6 @@ Hier ist noch eine Liste von Ideen für zukünftige Erweiterungen:
 * Ergänzung weiterer HM-Skripte (Hierbei ist Hilfe sehr willkommen.)
   * Erstellung und Anpassung von Systemvariablen, Räumen und Gewerken
   * Umbenennung von Geräten und Kanälen
-  * Änderung von Geräte-/Kanalparametern
   * Analyse von Wenn/Dann-Programmen
   * Erstellung von Wenn/Dann-Programmen
 * Anbindung des CCU-Historians
@@ -182,6 +191,7 @@ Name | Datentyp | Bedeutung
 name | string | Ein kurzer Bezeichner (ohne Leerzeichen) für den Parameter.
 description | string | Aus der Beschreibung des Parameters muss genau hervorgehen, wie das LLM diesen zu füllen hat.
 type | string | Der Datentyp des Parameters. Folgende Datentypen werden derzeit unterstützt: `string`, `integer`, `number`, `boolean`, `any`, `string[]`, `integer[]`, `number[]` und `boolean[]`.
+optional | boolean | Gibt an, ob der Parameter optional ist (`true`) oder Pflicht ist (`false`). Standardmäßig ist ein Parameter Pflicht (Default: `false`).
 
 ### Tipps
 

@@ -35,7 +35,7 @@ archives:
         dst: config.toml
 
 release:
-  skip_upload: false # temporary disable upload
+  skip_upload: false
   github:
     owner: mdzio
     name: ccu-ai-mcp

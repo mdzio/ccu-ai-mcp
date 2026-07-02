@@ -19,11 +19,14 @@ Das ist eigentlich nicht erwähnenswert, aber natürlich wird auch das Lesen von
 * Wie ist die Ursache-Wirkungs-Kette vom Helligkeitssensor außen bis zum Rollladen im Wohnzimmer an der Terrasse?
 * Untersuche alle konfigurierbaren Namen und Beschreibungen in der CCU hinsichtlich Verständlichkeit, Funktionsbezug und Rechtschreibung.
 * Korrigiere diese!
+* Analysiere alle CCU-Programme und mache einen Vorschlag je Programm für eine kurze Beschreibung.
+* Übertrage diese Beschreibungen auf die CCU-Programme.
 
 ## Werkzeuge/Tools
 
 Folgende Werkzeuge/Tools werden vom _CCU-AI-MCP_ für die KI bereit gestellt:
 * `list_programs` – Listet alle CCU-Programme mit Eigenschaften und letzter Ausführung
+* `read_program` – Liest alle Eigenschaften, Regeln, Bedingungen, Zeitgebener und Aktionen eines CCU-Programms
 * `update_program` – Aktualisiert Eigenschaften eines CCU-Programms (z. B. Name, Beschreibung, aktiv, sichtbar, bedienbar)
 * `execute_program` – Führt ein CCU-Programm aus
 * `list_system_variables` – Listet alle Systemvariablen mit Eigenschaften inkl. Referenzen zu Programmen

@@ -687,6 +687,327 @@ type = "integer"
 
 # -----------------------------------------------------------------------------
 [[tool]]
+name = 'read_program'
+description = 'Reads all properties, rules, conditions, timers, and actions from a CCU program and outputs them in YAML format.'
+kind = 'hm-script'
+enabled = true
+script = '''
+integer programID = {{ .programID }};
+object oProgram = dom.GetObject(programID);
+if (!oProgram) { WriteLine("ERROR: Program with ID " # programID # " not found."); quit; } 
+if (!oProgram.IsTypeOf(OT_PROGRAM)) { WriteLine("ERROR: Object with ID " # programID # " is not a program."); quit; }
+
+WriteLine("Below is the YAML dump of the program '" # oProgram.Name() # "':");
+WriteLine("properties:");
+WriteLine("  name: " # oProgram.Name());
+WriteLine("  id: " # oProgram.ID());
+WriteLine("  description: " # oProgram.PrgInfo());
+WriteLine("  active: " # oProgram.Active());
+WriteLine("  visible: " # oProgram.Visible());
+WriteLine("  internal: " # oProgram.Internal());
+WriteLine("  unerasable: " # oProgram.Unerasable());
+WriteLine("  lastExecutionTime: " # oProgram.ProgramLastExecuteTime());
+boolean isOperable = (oProgram.UserAccessRights(iulOtherThanAdmin) == iarFullAccess);
+WriteLine("  operable: " # isOperable);
+
+! Get first rule
+WriteLine("rules:");
+object oRule = oProgram.Rule();
+if (!oRule) { quit; }
+object oRuleSubRule;
+boolean bContinue = true;
+
+! Loop through all rules (main rule and sub-rules)
+while(bContinue) {
+    bContinue = false;
+    if (oRule) {
+
+        ! Dump conditions
+        integer conditionCount = oRule.RuleConditions().Count();
+        if (conditionCount > 0) {
+            WriteLine("  - conditionGroups:");
+            string idx = "";
+            foreach(idx, system.GenerateEnum(0,(conditionCount - 1))) {
+                object conditionGroup = oRule.RuleCondition(idx.ToInteger());
+                if (conditionGroup) {
+                    
+                    ! Group operator type
+                    integer groupOpType = conditionGroup.CndOperatorType();
+                    Write("      - groupOperator: ");
+                    if (groupOpType == 0) { WriteLine("NONE"); }
+                    elseif (groupOpType == 1) { WriteLine("AND"); } 
+                    elseif (groupOpType == 2) { WriteLine("OR"); } 
+                    else { WriteLine("UNKNOWN (" # groupOpType # ")"); }
+                
+                    ! Single conditions
+                    WriteLine("        conditions:");
+                    integer singleCount = conditionGroup.CndSingleCount();
+                    if (singleCount > 0) {
+                        string scIndex = "";
+                        foreach(scIndex, system.GenerateEnum(0,(singleCount - 1))) {
+                            object singleCondition = conditionGroup.CndSingleCondition(scIndex);
+                            if (singleCondition) {
+                                
+                                ! Left value type
+                                integer leftValType = singleCondition.LeftValType();
+                                Write("          - leftValueType: ");
+                                if (leftValType == ivtEmpty) { WriteLine("empty"); }
+                                elseif (leftValType == ivtObjectId) { WriteLine("object ID"); }
+                                elseif (leftValType == ivtSystemId) { WriteLine("system variable"); }
+                                elseif (leftValType == ivtCurrentDate) { WriteLine("current date"); }
+                                elseif (leftValType == ivtString) { WriteLine("string"); }
+                                elseif (leftValType == ivtSpecialValue) { WriteLine("special value"); }
+                                else { WriteLine("UNKNOWN (" # leftValType # ")"); }
+                                
+                                ! Left value
+                                string leftVal = singleCondition.LeftVal();
+                                if ((leftValType == ivtObjectId) || (leftValType == ivtSystemId)) {
+                                    object leftObj = dom.GetObject(leftVal);
+                                    if (leftObj) {
+                                        WriteLine("            leftObjectId: " #  leftVal);
+                                        WriteLine("            leftObjectName: " # leftObj.Name());
+                                        WriteLine("            leftObjectType: " # leftObj.TypeName());
+                                    } else { 
+                                        WriteLine("            leftObjectId: " # leftVal # " # ID NOT FOUND"); 
+                                    }
+                                } elseif (leftValType != ivtCurrentDate) { 
+                                    WriteLine("            leftValue: " # leftVal); 
+                                }
+                                
+                                ! Condition type
+                                integer conditionType = singleCondition.ConditionType();
+                                Write("            conditionType: ");
+                                if (conditionType == 1) { WriteLine("boolean compare"); }
+                                elseif (conditionType == 3) { WriteLine("time/date"); }
+                                elseif (conditionType == 5) { WriteLine("equal"); }
+                                elseif (conditionType == 6) { WriteLine("range (between)"); }
+                                elseif (conditionType == 8) { WriteLine("greater than"); }
+                                elseif (conditionType == 9) { WriteLine("greater than or equal"); }
+                                elseif (conditionType == 10) { WriteLine("less than"); }
+                                elseif (conditionType == 11) { WriteLine("less than or equal"); }
+                                elseif (conditionType == 12) { WriteLine("not equal"); }
+                                else { WriteLine("UNKNOWN (" # conditionType # ")"); }
+                                
+                                ! Condition type 2
+                                integer conditionType2 = singleCondition.ConditionType2();
+                                Write("            trigger: ");
+                                if (conditionType2 == 1) { WriteLine("on event"); }
+                                elseif (conditionType2 == 4) { WriteLine("when changed"); }
+                                elseif (conditionType2 == 13) { WriteLine("when updated"); }
+                                elseif (conditionType2 == 15) { WriteLine("no trigger, check only"); }
+                                else { WriteLine("UNKNOWN (" # conditionType2 # ")"); }
+                                
+                                ! Negation
+                                if (singleCondition.NegateCondition()) { WriteLine("            negated: true"); }
+                                
+                                ! Right value 1
+                                integer rightVal = singleCondition.RightVal1();
+                                integer rightValType = singleCondition.RightVal1ValType();
+                                boolean isTimer = false;
+                                if (rightValType == ivtObjectId) {
+                                    object rightObj = dom.GetObject(rightVal);
+                                    if (rightObj) {
+                                        if (rightObj.IsTypeOf(OT_CALENDARDP)) {
+                                        
+                                            ! Timer properties
+                                            isTimer = true;
+                                            WriteLine("            timer:");
+                                            Write("              timerType: ");
+                                            if (rightObj.TimerType() == ttPeriodic) { WriteLine("periodic"); }
+                                            elseif (rightObj.TimerType() == ttCalOnce) { WriteLine("once"); }
+                                            elseif (rightObj.TimerType() == ttCalDaily) { WriteLine("daily"); }
+                                            elseif (rightObj.TimerType() == ttCalWeekly) { WriteLine("weekly"); }
+                                            elseif (rightObj.TimerType() == ttCalMonthly) { WriteLine("monthly"); }
+                                            elseif (rightObj.TimerType() == ttCalYearly) { WriteLine("yearly"); }
+                                            else { WriteLine("UNKNOWN (" # rightObj.TimerType() # ")"); }
+                                            string triggerTime = rightObj.Time().ToString();
+                                            if (triggerTime != "1970-01-01 01:00:00") { 
+                                                WriteLine("              triggerTime: " # triggerTime.Substr(11, 8));
+                                            }
+                                            string triggerDate = rightObj.CalRepeatTime().ToString();
+                                            if (triggerDate != "1970-01-01 01:00:00") {
+                                                WriteLine("              triggerDate: " # triggerDate.Substr(0, 10));
+                                            }
+                                            if (rightObj.CalDuration() != 0) {
+                                                WriteLine("              triggerDuration: " # rightObj.CalDuration() # " # seconds");
+                                            }
+                                            if (rightObj.SunOffsetType() != sotNone) {
+                                                Write("              sunOffsetType: ");
+                                                if (rightObj.SunOffsetType() == sotAfterSunrise) { WriteLine("astronomical daytime"); }
+                                                elseif (rightObj.SunOffsetType() == sotAfterSunset) { WriteLine("astronomical nighttime"); }
+                                                else { WriteLine("UNKNOWN (" # rightObj.SunOffsetType() # ")"); }
+                                            }
+                                            if (rightObj.Period() != 0) {
+                                                WriteLine("              period: " # rightObj.Period() # " # seconds or n'th");
+                                            }
+                                            if (rightObj.CalRepetitionValue() != 0) {
+                                                WriteLine("              repetitionValue: " # rightObj.CalRepetitionValue() # " # every");
+                                            }
+                                            integer wd = rightObj.Weekdays();
+                                            if (wd != 0) {
+                                                Write("              weekdays: [");
+                                                string wdText = "";
+                                                if (wd & 1) { wdText = "monday, "; }
+                                                if (wd & 2) { wdText = wdText # "tuesday, "; }
+                                                if (wd & 4) { wdText = wdText # "wednesday, "; }
+                                                if (wd & 8) { wdText = wdText # "thursday, "; }
+                                                if (wd & 16) { wdText = wdText # "friday, "; }
+                                                if (wd & 32) { wdText = wdText # "saturday, "; }
+                                                if (wd & 64) { wdText = wdText # "sunday, "; }
+                                                if (wdText == "") { wdText = "none, "; }
+                                                WriteLine(wdText.Substr(0, wdText.Length()-2) # "]");
+                                            }
+                                            WriteLine("              beginDateTime: " # rightObj.Begin().Format("%F"));
+                                            string endDateTime = rightObj.End().Format("%F");
+                                            if (endDateTime != "1970-01-01") { 
+                                                WriteLine("              endDateTime: " # endDateTime);
+                                            }
+                                            if (rightObj.CalRepetitionCount() != 0) {
+                                                WriteLine("              numberOfRepetitions: " # rightObj.CalRepetitionCount());
+                                            }
+                                        } else {
+                                            WriteLine("            rightObjectId: " # rightObj.ID()); 
+                                            WriteLine("            rightObjectName: " # rightObj.Name()); 
+                                        }
+                                    } else {
+                                        WriteLine("            rightObjectId: " # rightVal # " # ID NOT FOUND"); 
+                                    }
+                                } else {
+                                    ! numeric right value
+                                    WriteLine("            rightValue: " # rightVal); 
+                                }
+                                
+                                ! Right value 2
+                                integer rightVal2 = singleCondition.RightVal2();
+                                integer rightVal2Type = singleCondition.RightVal2ValType();
+                                if ((rightVal2Type != ivtEmpty) && (conditionType == 6)) {
+                                    WriteLine("            rightValue2: " # rightVal2);
+                                }
+                                
+                                ! Condition channel
+                                integer condChannel = singleCondition.ConditionChannel();
+                                if ((condChannel != 65535) && (!isTimer)) {
+                                    object channelObj = dom.GetObject(condChannel);
+                                    if (channelObj) { 
+                                        WriteLine("            conditionChannelName: " # channelObj.Name()); 
+                                        WriteLine("            conditionChannelId: " # condChannel); 
+                                    } else { 
+                                        WriteLine("            conditionChannelId: " # condChannel # " # ID NOT FOUND"); 
+                                    }
+                                }
+                                
+                                ! Operator
+                                integer operatorType = singleCondition.OperatorType();
+                                Write("            conditionOperator: ");
+                                if (operatorType == 0) { WriteLine("NONE"); }
+                                elseif (operatorType == 1) { WriteLine("AND"); }
+                                elseif (operatorType == 2) { WriteLine("OR"); }
+                                else { WriteLine("UNKNOWN (" # operatorType # ")"); }
+                            }
+                        }
+                    } else { WriteLine("        conditions: []"); }
+                }
+            }
+        } else { WriteLine("  - conditionGroups: []"); }
+        
+        ! dump destinations
+        object destinations = oRule.RuleDestination();
+        if (destinations) {
+            WriteLine("    actions:");
+            WriteLine("      cancelPendingDelays: " # destinations.BreakOnRestart());
+            integer destCount = destinations.DestSingleCount();
+            if (destCount > 0) {
+                WriteLine("      destinations:");
+                string destIndex = "";
+                foreach(destIndex, system.GenerateEnum(0, (destCount - 1))) {
+                    object singleDest = destinations.DestSingleDestination(destIndex);
+                    if (singleDest)
+                    {
+                        ! Source
+                        var destValue = singleDest.DestinationValue();
+                        integer destValueType = singleDest.DestinationValueType();
+                        if ((destValueType == ivtObjectId) || (destValueType == ivtSystemId)) {
+                            WriteLine("        - source:");
+                            object valObj = dom.GetObject(destValue);
+                            WriteLine("            dataPointId: " # destValue); 
+                            WriteLine("            dataPointName: " # valObj.Name());
+                            WriteLine("            dataPointType: " # valObj.TypeName());
+                            if (valObj.IsTypeOf(OT_HSSDP)) {
+                                WriteLine("            channelId: " # valObj.Channel());
+                                object srcChObj = dom.GetObject(valObj.Channel());
+                                if (srcChObj) {
+                                    WriteLine("            channelName: " # srcChObj.Name());
+                                }
+                            }
+                        } elseif (destValueType == ivtString) {
+                            WriteLine("        - script: |");
+                            WriteLine("            " # destValue.Trim().Replace("\n", "\n            "));
+                        } else {
+                            WriteLine("        - source:");
+                            WriteLine("            value: " # destValue);
+                        }
+
+                        ! Destination
+                        integer destDP = singleDest.DestinationDP();
+                        if (destDP && (65535 != destDP)) {
+                            WriteLine("          destination:");
+                            object dpObj = dom.GetObject(destDP);
+                            if (dpObj) {
+                                WriteLine("            dataPointId: " # destDP); 
+                                WriteLine("            dataPointName: " # dpObj.Name());
+                                WriteLine("            dataPointType: " # dpObj.TypeName());
+                                if (dpObj.IsTypeOf(OT_HSSDP)) {
+                                    WriteLine("            channelId: " # dpObj.Channel());
+                                    object chObj = dom.GetObject(dpObj.Channel());
+                                    if (chObj) {
+                                        WriteLine("            channelName: " # chObj.Name());
+                                    }
+                                }
+                            } else { 
+                                WriteLine("            dataPointId: " # destDP # " # ID NOT FOUND"); 
+                            }
+                        }
+                        
+                        ! Delay parameter
+                        integer destValueParamType = singleDest.DestinationValueParamType();
+                        if (destValueParamType != ivtEmpty) {
+                            WriteLine("          parameter:");
+                            Write("            type: ");
+                            if (destValueParamType == ivtDelay) { WriteLine("delay"); }
+                            else { WriteLine("UNKNOWN (" # destValueParamType # ")"); }
+                            
+                            var destValueParam = singleDest.DestinationValueParam();
+                            if (destValueParam != null) {
+                                Write("            value: ");
+                                if (destValueParamType == ivtDelay) {
+                                    WriteLine(destValueParam.ToString().Substr(11, 8) # " # hh:mm:ss");
+                                } else {
+                                    WriteLine(destValueParam);
+                                }
+                            }
+                        }
+                    }
+                }
+            } else { WriteLine("      destinations: []"); }
+        }
+        
+        ! Check for sub-rule and continue loop
+        oRuleSubRule = oRule.RuleSubRule();
+        if (oRuleSubRule) {
+            bContinue = true;
+            oRule = oRuleSubRule;
+        }
+    }
+}
+'''
+
+[[tool.parameter]]
+name = "programID"
+description = "ISEID of the CCU program"
+type = "integer"
+
+# -----------------------------------------------------------------------------
+[[tool]]
 name = 'update_program'
 description = 'Updates properties of a CCU program (e.g. name, description, active, visible, operable).'
 kind = 'hm-script'

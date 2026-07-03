@@ -6,10 +6,10 @@ Gegenüber anderen MCP-Servern, die einen festen Satz an Tools bereitstellen, k�
 
 Folgende Werkzeuge (Tools) sind bereits implementiert:
 * `list_programs` – Listet alle CCU-Programme mit Eigenschaften und letzter Ausführung
-* `read_program` – Liest alle Eigenschaften, Regeln, Bedingungen, Zeitgebener und Aktionen eines CCU-Programms
 * `update_program` – Aktualisiert Eigenschaften eines CCU-Programms (z. B. Name, Beschreibung, aktiv, sichtbar, bedienbar)
 * `execute_program` – Führt ein CCU-Programm aus
 * `list_system_variables` – Listet alle Systemvariablen mit Eigenschaften inkl. Referenzen zu Programmen
+* `update_system_variable` – Aktualisiert Eigenschaften einer CCU-Systemvariablen (z. B. Name, Beschreibung)
 * `list_devices` – Listet alle Geräte mit Typ und Adresse
 * `list_channels_of_device` – Listet alle Kanäle eines Geräts inkl. Referenzen zu Programmen
 * `list_data_points_of_channel` – Listet alle Datenpunkte eines Kanals

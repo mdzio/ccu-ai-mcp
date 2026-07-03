@@ -57,6 +57,53 @@ if (sysVars) {
 
 # -----------------------------------------------------------------------------
 [[tool]]
+name = 'update_system_variable'
+description = 'Updates properties of a CCU system variable (e.g. name, description).'
+kind = 'hm-script'
+enabled = true
+script = '''
+integer variableID = {{ .variableID }};
+object svObj = dom.GetObject(variableID);
+if (svObj) {
+    if ((!svObj.IsTypeOf(OT_VARDP)) && (!svObj.IsTypeOf(OT_ALARMDP))) { 
+        WriteLine("ERROR: Object with ISEID " # variableID # " is not a system or alarm variable."); 
+        quit; 
+    }
+{{if .newName }} 
+    string newName = {{ printf "%q" .newName }};
+    svObj.Name(newName);
+    WriteLine("Update of system variable name succeeded.");
+{{end}}
+{{if .newDescription}}
+    string newDescription = {{ printf "%q" .newDescription }};
+    svObj.DPInfo(newDescription);
+    WriteLine("Update of system variable description succeeded.");
+{{end}}
+    dom.RTUpdate(false);
+} else {
+  WriteLine("ERROR: Object with ISEID " # variableID # " not found.");
+}
+'''
+
+[[tool.parameter]]
+name = "variableID"
+description = "ISEID of the system variable"
+type = "integer"
+
+[[tool.parameter]]
+name = "newName"
+description = "New name for the system variable"
+type = "string"
+optional = true
+
+[[tool.parameter]]
+name = "newDescription"
+description = "New description for the system variable"
+type = "string"
+optional = true
+
+# -----------------------------------------------------------------------------
+[[tool]]
 name = 'read_data_points'
 description = '''
 Reads values from multiple data points. Returns read result (OK or ERROR), value and timestamp

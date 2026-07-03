@@ -11,7 +11,9 @@ Folgende Werkzeuge (Tools) sind bereits implementiert:
 * `list_system_variables` – Listet alle Systemvariablen mit Eigenschaften inkl. Referenzen zu Programmen
 * `update_system_variable` – Aktualisiert Eigenschaften einer CCU-Systemvariablen (z. B. Name, Beschreibung)
 * `list_devices` – Listet alle Geräte mit Typ und Adresse
+* `update_device` – Aktualisiert Eigenschaften eines CCU-Geräts (z. B. Name)
 * `list_channels_of_device` – Listet alle Kanäle eines Geräts inkl. Referenzen zu Programmen
+* `update_channel` – Aktualisiert Eigenschaften eines Gerätekanals (z. B. Name)
 * `list_data_points_of_channel` – Listet alle Datenpunkte eines Kanals
 * `read_data_points` – Liest Werte mehrerer Datenpunkte
 * `write_data_point` – Schreibt einen Wert in einen Datenpunkt

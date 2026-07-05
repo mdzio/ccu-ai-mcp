@@ -11,14 +11,16 @@ Folgende Werkzeuge (Tools) sind bereits implementiert:
 * `list_system_variables` – Listet alle Systemvariablen mit Eigenschaften inkl. Referenzen zu Programmen
 * `update_system_variable` – Aktualisiert Eigenschaften einer CCU-Systemvariablen (z. B. Name, Beschreibung)
 * `list_devices` – Listet alle Geräte mit Typ und Adresse
-* `update_device` – Aktualisiert Eigenschaften eines CCU-Geräts (z. B. Name)
+* `update_device` – Aktualisiert Eigenschaften eines Geräts (z. B. Name)
 * `list_channels_of_device` – Listet alle Kanäle eines Geräts inkl. Referenzen zu Programmen
 * `update_channel` – Aktualisiert Eigenschaften eines Gerätekanals (z. B. Name)
 * `list_data_points_of_channel` – Listet alle Datenpunkte eines Kanals
 * `read_data_points` – Liest Werte mehrerer Datenpunkte
 * `write_data_point` – Schreibt einen Wert in einen Datenpunkt
 * `list_rooms` – Listet alle konfigurierten Räume
+* `update_room` – Aktualisiert Eigenschaften eines Raums (Name, Beschreibung, Kanäle hinzufügen/entfernen)
 * `list_functions` – Listet alle Gewerke
+* `update_function` – Aktualisiert Eigenschaften eines Gewerks (Name, Beschreibung, Kanäle hinzufügen/entfernen)
 * `read_service_messages` – Liest aktive Servicemeldungen (z. B. Batterie leer)
 * `read_alarm_messages` – Liest aktive Alarmsystemvariablen
 * `read_system_info` – Gibt Systeminformationen der CCU zurück, u.a. Firmware-Version, Dateisystem, Uptime und RAM-Nutzung

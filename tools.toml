@@ -407,6 +407,132 @@ optional = true
 
 # -----------------------------------------------------------------------------
 [[tool]]
+name = 'update_room'
+description = 'Updates properties of a CCU room (name, description, add/remove channels).'
+kind = 'hm-script'
+enabled = true
+script = '''
+integer roomID = {{ .roomID }};
+object roomObj = dom.GetObject(roomID);
+if (roomObj) {
+    if ((roomObj.EnumType()!=etRoom) || (!roomObj.IsTypeOf(OT_ENUM))) { WriteLine("ERROR: Object with ISEID " # roomID # " is not a room."); quit; }
+{{if .newName }}
+    string newName = {{ printf "%q" .newName }};
+    if (!roomObj.Name(newName)) { WriteLine("ERROR: Failed to set name for room with ISEID " # roomID); quit; }
+    WriteLine("Update of room name succeeded.");
+{{end}}
+{{if .newDescription}}
+    string newDescription = {{ printf "%q" .newDescription }};
+    roomObj.EnumInfo(newDescription);
+    WriteLine("Update of room description succeeded.");
+{{end}}
+{{if .addChannelID }}
+    if (!roomObj.Add({{ .addChannelID }})) { WriteLine("ERROR: Failed to add channel {{ .addChannelID }} to room with ISEID " # roomID); quit; }
+    WriteLine("Channel {{ .addChannelID }} added to room successfully.");
+{{end}}
+{{if .removeChannelID }}
+    if (!roomObj.Remove({{ .removeChannelID }})) { WriteLine("ERROR: Failed to remove channel {{ .removeChannelID }} from room with ISEID " # roomID); quit; }
+    WriteLine("Channel {{ .removeChannelID }} removed from room successfully.");
+{{end}}
+} else {
+  WriteLine("ERROR: Object with ISEID " # roomID # " not found.");
+}
+'''
+
+[[tool.parameter]]
+name = "roomID"
+description = "ISEID of the CCU room"
+type = "integer"
+
+[[tool.parameter]]
+name = "newName"
+description = "New name for the room"
+type = "string"
+optional = true
+
+[[tool.parameter]]
+name = "newDescription"
+description = "New description for the room"
+type = "string"
+optional = true
+
+[[tool.parameter]]
+name = "addChannelID"
+description = "Channel ISEID to add to the room"
+type = "integer"
+optional = true
+
+[[tool.parameter]]
+name = "removeChannelID"
+description = "Channel ISEID to remove from the room"
+type = "integer"
+optional = true
+
+# -----------------------------------------------------------------------------
+[[tool]]
+name = 'update_function'
+description = 'Updates properties of a CCU functional group (name, description, add/remove channels).'
+kind = 'hm-script'
+enabled = true
+script = '''
+integer functionID = {{ .functionID }};
+object functionObj = dom.GetObject(functionID);
+if (functionObj) {
+    if ((functionObj.EnumType()!=etFunction) || (!functionObj.IsTypeOf(OT_ENUM))) { WriteLine("ERROR: Object with ISEID " # functionID # " is not a functional group."); quit; }
+{{if .newName }}
+    string newName = {{ printf "%q" .newName }};
+    if (!functionObj.Name(newName)) { WriteLine("ERROR: Failed to set name for functional group with ISEID " # functionID); quit; }
+    WriteLine("Update of functional group name succeeded.");
+{{end}}
+{{if .newDescription}}
+    string newDescription = {{ printf "%q" .newDescription }};
+    functionObj.EnumInfo(newDescription);
+    WriteLine("Update of functional group description succeeded.");
+{{end}}
+{{if .addChannelID }}
+    if (!functionObj.Add({{ .addChannelID }})) { WriteLine("ERROR: Failed to add channel {{ .addChannelID }} to functional group with ISEID " # functionID); quit; }
+    WriteLine("Channel {{ .addChannelID }} added to functional group successfully.");
+{{end}}
+{{if .removeChannelID }}
+    if (!functionObj.Remove({{ .removeChannelID }})) { WriteLine("ERROR: Failed to remove channel {{ .removeChannelID }} from functional group with ISEID " # functionID); quit; }
+    WriteLine("Channel {{ .removeChannelID }} removed from functional group successfully.");
+{{end}}
+} else {
+  WriteLine("ERROR: Object with ISEID " # functionID # " not found.");
+}
+'''
+
+[[tool.parameter]]
+name = "functionID"
+description = "ISEID of the CCU functional group"
+type = "integer"
+
+[[tool.parameter]]
+name = "newName"
+description = "New name for the functional group"
+type = "string"
+optional = true
+
+[[tool.parameter]]
+name = "newDescription"
+description = "New description for the functional group"
+type = "string"
+optional = true
+
+[[tool.parameter]]
+name = "addChannelID"
+description = "Channel ISEID to add to the functional group"
+type = "integer"
+optional = true
+
+[[tool.parameter]]
+name = "removeChannelID"
+description = "Channel ISEID to remove from the functional group"
+type = "integer"
+optional = true
+
+# -----------------------------------------------------------------------------
+[[tool]]
 name = 'read_service_messages'
 description = 'Reads all active device service messages (e.g. unreachable, battery low).'
 kind = 'hm-script'

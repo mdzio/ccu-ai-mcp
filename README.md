@@ -28,8 +28,6 @@ Folgende Werkzeuge (Tools) sind bereits implementiert:
 
 ## Bespiele für LLM-Prompts
 
-* Analysiere alle CCU-Programme und mache einen Vorschlag je Programm für eine kurze Beschreibung.
-* Übertrage diese Beschreibungen auf die CCU-Programme.
 * Wie ist die Ursache-Wirkungs-Kette vom Helligkeitssensor außen bis zum Rollladen im Wohnzimmer an der Terrasse?
 
 ## Projektstatus

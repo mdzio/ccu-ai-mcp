@@ -169,7 +169,7 @@ type = "any"
 # -----------------------------------------------------------------------------
 [[tool]]
 name = 'list_rooms'
-description = 'Lists all configured rooms of the CCU.'
+description = 'Lists all configured rooms of the CCU. Returns ISEID, name and description.'
 kind = 'hm-script'
 enabled = true
 script = '''
@@ -177,7 +177,7 @@ script = '''
 object eobj = dom.GetObject(ID_ROOMS);
 if (eobj) {
 	WriteLine("Result is a markdown table:");
-	WriteLine("| ISEID | Name | Info |");
+	WriteLine("| ISEID | Name | Description |");
 	WriteLine("|---|---|---|");
 	string id;
 	integer count = 0;
@@ -195,7 +195,7 @@ if (eobj) {
 # -----------------------------------------------------------------------------
 [[tool]]
 name = 'list_functions'
-description = 'Lists all functional groups of the CCU.'
+description = 'Lists all functional groups of the CCU. Returns ISEID, name and description.'
 kind = 'hm-script'
 enabled = true
 script = '''
@@ -203,7 +203,7 @@ script = '''
 object eobj = dom.GetObject(ID_FUNCTIONS);
 if (eobj) {
 	WriteLine("Result is a markdown table:");
-	WriteLine("| ISEID | Name | Info |");
+	WriteLine("| ISEID | Name | Description |");
 	WriteLine("|---|---|---|");
 	string id;
 	integer count = 0;

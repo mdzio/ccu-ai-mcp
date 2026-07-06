@@ -592,7 +592,7 @@ WriteLine("\nFound " # count # " active alarm messages.");
 name = 'read_system_info'
 description = '''
 Returns information about the CCU, e.g. CCU firmware version, product type,
-platform, ReGaHss build label, file system, uptime, ram usage.
+platform, ReGaHss build label, file system, uptime, ram usage, system info.
 '''
 kind = 'hm-script'
 enabled = true
@@ -611,6 +611,9 @@ system.Exec("uptime", &stdout);
 WriteLine(stdout.Trim());
 WriteLine("Output of `free`:");
 system.Exec("free", &stdout);
+WriteLine(stdout.Trim());
+WriteLine("Output of `uname -a`:");
+system.Exec("uname -a", &stdout);
 WriteLine(stdout.Trim());
 '''
 

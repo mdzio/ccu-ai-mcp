@@ -15,6 +15,8 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
+var httpLog = slog.With("component", "http")
+
 // contextKey is a custom type for context keys to avoid collisions
 type contextKey string
 
@@ -79,14 +81,14 @@ func serveHTTP(mcpServer *server.MCPServer, useTLS bool) error {
 	if useTLS {
 		opts = append(opts, server.WithTLSCert(configMain.MCP.CertFile, configMain.MCP.KeyFile))
 	} else {
-		slog.Warn("No TLS (HTTPS) configured for MCP server")
+		httpLog.Warn("No TLS (HTTPS) configured for MCP server")
 	}
 
 	// add authentication middleware if apiKey is configured
 	if configMain.MCP.APIKey != "" {
 		mcpServer.Use(authMiddleware(configMain.MCP.APIKey))
 	} else {
-		slog.Warn("No API key configured for MCP server")
+		httpLog.Warn("No API key configured for MCP server")
 	}
 
 	// create and configure HTTP server
@@ -107,6 +109,6 @@ func serveHTTP(mcpServer *server.MCPServer, useTLS bool) error {
 	}()
 
 	// start serving
-	slog.Info("Starting MCP HTTP(S) server", "address", addr, "endpoint", "/mcp")
+	httpLog.Info("Starting MCP HTTP(S) server", "address", addr, "endpoint", "/mcp")
 	return httpServer.Start(addr)
 }

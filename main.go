@@ -28,6 +28,7 @@ var (
 	configTools *config.Tools
 	// to ensure that no signal is missed, the buffer size must be 1
 	termSig = make(chan os.Signal, 1)
+	mainLog = slog.With("component", "main")
 )
 
 // configure handles all application configuration
@@ -51,7 +52,7 @@ func configure() error {
 	slog.SetLogLoggerLevel(configMain.General.LogLevel)
 
 	// log startup message
-	slog.Info("Starting " + appDisplayName + " V" + appVersion + " " + appCopyright + " " + appVendor)
+	mainLog.Info("Starting " + appDisplayName + " V" + appVersion + " " + appCopyright + " " + appVendor)
 
 	// load tools configuration
 	configTools, err = config.LoadTools(configMain.General.ToolFile)
@@ -65,7 +66,7 @@ func configure() error {
 // run method of application
 func run() error {
 	defer func() {
-		slog.Debug("Shutting down")
+		mainLog.Debug("Shutting down")
 	}()
 
 	// configure application
@@ -108,7 +109,7 @@ func run() error {
 		}
 		return err
 	case config.STDIO:
-		slog.Info("Starting MCP STDIO server")
+		mainLog.Info("Starting MCP STDIO server")
 		// OS signals are handled
 		err := server.ServeStdio(mcpServer)
 		if errors.Is(err, context.Canceled) {
@@ -127,7 +128,7 @@ func main() {
 
 	// log fatal error
 	if err != nil {
-		slog.Error("Fatal error", "message", err)
+		mainLog.Error("Fatal error", "message", err)
 		os.Exit(1)
 	}
 	os.Exit(0)

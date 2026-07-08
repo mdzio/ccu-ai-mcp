@@ -13,6 +13,8 @@ import (
 	"github.com/mdzio/ccu-ai-mcp/config"
 )
 
+var toolsLog = slog.With("component", "tools")
+
 // createTools creates all MCP tools for the server
 func createTools() ([]server.ServerTool, error) {
 	// create script client
@@ -30,7 +32,7 @@ func createTools() ([]server.ServerTool, error) {
 		}
 
 		// only HM scripts are currently supported
-		slog.Debug("Creating tool", "name", toolCfg.Name, "kind", toolCfg.Kind)
+		toolsLog.Debug("Creating tool", "name", toolCfg.Name, "kind", toolCfg.Kind)
 		if toolCfg.Kind != config.HMScript {
 			return nil, fmt.Errorf("unsupported tool kind %s in tool %s", toolCfg.Kind, toolCfg.Name)
 		}
@@ -82,13 +84,13 @@ func createTools() ([]server.ServerTool, error) {
 
 		// create handler for this tool
 		handler := func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			slog.Debug("Executing tool", "name", toolCfg.Name)
+			toolsLog.Debug("Executing tool", "name", toolCfg.Name)
 
 			// extract parameters from MCP call
 			params := request.GetArguments()
 
 			// execute the script template with parameters
-			slog.Debug("Executing script with parameters", mapAsSlice(params)...)
+			toolsLog.Debug("Executing script with parameters", mapAsSlice(params)...)
 			resp, err := scriptClient.ExecuteTmpl(templ, params)
 			if err != nil {
 				return mcp.NewToolResultErrorFromErr("Execution of the HM script for the tool failed", err), nil

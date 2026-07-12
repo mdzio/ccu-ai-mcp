@@ -91,7 +91,7 @@ func createTools() ([]server.ServerTool, error) {
 
 			// execute the script template with parameters
 			toolsLog.Debug("Executing script with parameters", mapAsSlice(params)...)
-			resp, err := scriptClient.ExecuteTmpl(templ, params)
+			resp, err := scriptClient.ExecuteTempl(templ, params)
 			if err != nil {
 				return mcp.NewToolResultErrorFromErr("Execution of the HM script for the tool failed", err), nil
 			}

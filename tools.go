@@ -98,7 +98,7 @@ func createTools() ([]server.ServerTool, error) {
 
 			// check for empty response
 			if len(resp) == 0 || (len(resp) == 1 && resp[0] == "") {
-				return mcp.NewToolResultError("Execution of the HM script returned empty result, the user should check the HM script of this tool"), nil
+				return mcp.NewToolResultError("Execution of the HM script returned empty result, the HM script may have a syntax error or a called method does not exist"), nil
 			}
 
 			// build result text

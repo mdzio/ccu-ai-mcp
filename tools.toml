@@ -106,15 +106,15 @@ optional = true
 [[tool]]
 name = 'read_data_points'
 description = '''
-Reads values from multiple data points. Returns read result (OK or ERROR), value and timestamp
-for each data point.
+Reads values from multiple data points. Returns read result (OK or ERROR), value and last update
+timestamp for each data point.
 '''
 kind = 'hm-script'
 enabled = true
 script = '''
 ! Reading multiple data points
 WriteLine("Result is a markdown table:");
-WriteLine("| ISEID | Read result | Value | Timestamp |");
+WriteLine("| ISEID | Read result | Value | Last update timestamp |");
 WriteLine("|---|---|---|---|");
 string id; foreach(id,"{{range $i, $e := .iseids}}{{if $i}}\t{{end}}{{$e}}{{end}}") {
 	var dp=dom.GetObject(id);

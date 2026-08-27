@@ -9,8 +9,8 @@ import (
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
-	"github.com/mdzio/ccu-ai-mcp/ccu"
 	"github.com/mdzio/ccu-ai-mcp/config"
+	"github.com/mdzio/go-hmccu/v2/script"
 )
 
 var toolsLog = slog.With("component", "tools")
@@ -18,7 +18,7 @@ var toolsLog = slog.With("component", "tools")
 // createTools creates all MCP tools for the server
 func createTools() ([]server.ServerTool, error) {
 	// create script client
-	scriptClient := &ccu.ScriptClient{
+	scriptClient := &script.Client{
 		Addr:     configMain.CCU.Address,
 		UserName: configMain.CCU.User,
 		Password: configMain.CCU.Password,

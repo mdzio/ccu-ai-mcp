@@ -18,7 +18,12 @@ var (
 
 func main() {
 	flag.Usage = func() {
+		fmt.Fprintln(os.Stderr, "fills a text template with key=value pairs and writes the result to an output file")
+		fmt.Fprintln(os.Stderr, "exactly one template source must be provided (-i or -t)")
+		fmt.Fprintln(os.Stderr, "template syntax: https://pkg.go.dev/text/template")
+		fmt.Fprintln(os.Stderr)
 		fmt.Fprintln(os.Stderr, "usage: tmplfill [options] key=value ...")
+		fmt.Fprintln(os.Stderr, "options:")
 		flag.PrintDefaults()
 	}
 	flag.Parse()

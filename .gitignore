@@ -1,7 +1,7 @@
 /dist/
+/tmp/
 /config.toml
 /ccu-ai-mcp.exe
 /ccu-ai-mcp
 *.crt
 *.key
-*.bak

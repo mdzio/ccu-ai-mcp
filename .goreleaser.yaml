@@ -5,6 +5,7 @@ project_name: ccu-ai-mcp
 before:
   hooks:
     - go mod tidy
+    - go build -o tmp/ tool/filltmpl.go
 
 builds:
   - binary: ccu-ai-mcp

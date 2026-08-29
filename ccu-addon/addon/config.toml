@@ -34,7 +34,7 @@ keyFile = '/etc/config/server.pem'
 
 # API key for MCP authentication using Bearer token. Leave empty to disable API
 # key checking.
-apiKey = ''
+apiKey = 'GENERATE IT'
 
 # CORS allowed origins for browser-based MCP clients
 corsAllowedOrigins = []

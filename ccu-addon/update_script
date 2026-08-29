@@ -50,7 +50,12 @@ cp -af rc.d/* ${RCD_DIR}/
 # Copy www directory
 cp -af www/* ${WWW_DIR}/
 
-# TODO: Generate a unique API key, if it does not already exist.
+# Generate a unique API key, if it does not already exist.
+CONFIG=${ADDON_DIR}/config.toml
+if grep -Eq "^apiKey\s*=\s*'GENERATE IT'" ${CONFIG} 2>/dev/null; then
+  API_KEY=$(head -c 32 /dev/urandom | base64 | tr -d '/+=' | head -c 32)
+  sed -Ei "s/^apiKey\s*=\s*'GENERATE IT'$/apiKey = '${API_KEY}'/" ${CONFIG}
+fi
 
 # Add menu entry
 cp -af addon/update_hm_addons.tcl ${ADDON_DIR}/

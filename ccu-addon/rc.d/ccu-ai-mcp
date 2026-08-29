@@ -16,6 +16,7 @@ stop() {
     logger -t ${ADDON_ID} -p user.debug "Stopping"
     # stop process
     start-stop-daemon -K -q -p /var/run/${ADDON_ID}.pid
+    rm -f /var/run/${ADDON_ID}.pid
     # wait for stop
     sleep 5
     logger -t ${ADDON_ID} -p user.info "Stopped"
@@ -25,7 +26,7 @@ start() {
     logger -t ${ADDON_ID} -p user.debug "Starting"
     # start process
     cd ${ADDON_DIR}
-    start-stop-daemon -S -q -b -m -p /var/run/${ADDON_ID}.pid -x ${ADDON_DIR}/${ADDON_ID}
+    start-stop-daemon -S -q -b -m -p /var/run/${ADDON_ID}.pid -x /bin/sh -- -c "exec ${ADDON_DIR}/${ADDON_ID} 2>>/var/log/${ADDON_ID}.log"
     logger -t ${ADDON_ID} -p user.info "Started"
 }
 
@@ -54,11 +55,11 @@ uninstall() {
 }
 
 case "$1" in
-  ""|init)
-    start
+  init)
+    echo "init does nothing"
   ;;
   start)
-	  echo "use init to start"
+    start
 	;;
   stop)
 	  stop

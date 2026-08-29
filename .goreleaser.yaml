@@ -6,9 +6,10 @@ before:
   hooks:
     - go mod tidy
     - go build -o tmp/ tool/filltmpl.go
+    - tmp/filltmpl -i "{{.Version}}" -o tmp/VERSION
 
 builds:
-  - id: linux
+  - id: generic
     binary: ccu-ai-mcp
     flags:
      - -trimpath
@@ -17,22 +18,23 @@ builds:
     targets:
       - linux_amd64_v1
       - linux_arm_6
-  - id: windows_darwin
-    binary: ccu-ai-mcp
+      - windows_amd64_v1
+      - darwin_amd64_v1
+      - darwin_arm64_v8.0
+  - id: ccu-addon
+    binary: addon/ccu-ai-mcp
     flags:
      - -trimpath
     ldflags:
      - -s -w -X main.appVersion={{.Version}}
     targets:
-      - windows_amd64_v1
-      - darwin_amd64_v1
-      - darwin_arm64_v8.0
+      - linux_amd64_v1
+      - linux_arm_6
 
 archives:
   - id: generic
     ids:
-      - linux
-      - windows_darwin
+      - generic
     formats: [tar.gz]
     format_overrides:
       - goos: windows
@@ -43,21 +45,44 @@ archives:
       - LICENSE.txt
       - README.md
       - tools.toml
+      - src: tmp/VERSION
+        dst: VERSION
       - src: config.template.toml
         dst: config.toml
   - id: ccu-addon
     ids:
-      - linux
+      - ccu-addon
     name_template: "{{ .ProjectName }}_ccu-addon_{{ .Version }}_{{ .Arch }}{{ with .Arm }}v{{ . }}{{ end }}"
     formats: [tar.gz]
     builds_info:
       mode: 0755
     files:
-      - LICENSE.txt
-      - README.md
-      - tools.toml
-      - src: config.template.toml
-        dst: config.toml
+      - src: LICENSE.txt
+        dst: addon/LICENSE.txt
+      - src: README.md
+        dst: addon/README.md
+      - src: tmp/VERSION
+        dst: addon/VERSION
+      - src: tools.toml
+        dst: addon/tools.toml
+      - src: ccu-addon/addon/config.toml
+        dst: addon/config.toml
+      - src: ccu-addon/addon/update_hm_addons.tcl
+        dst: addon/update_hm_addons.tcl
+        info:
+          mode: 0755
+      - src: ccu-addon/rc.d/ccu-ai-mcp
+        dst: rc.d/ccu-ai-mcp
+        info:
+          mode: 0755
+      - src: ccu-addon/update_script
+        dst: update_script
+        info:
+          mode: 0755
+      - src: ccu-addon/www/config.cgi
+        dst: www/config.cgi
+      - src: ccu-addon/www/update-check.cgi
+        dst: www/update-check.cgi
 
 release:
   skip_upload: false

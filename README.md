@@ -222,7 +222,7 @@ optional | boolean | Gibt an, ob der Parameter optional ist (`true`) oder Pflich
 
 ## Einbindung in KI-Agenten
 
-Wie die verschiedenen KI-Agenten für MCP konfiguriert werden, ist der Dokumentation des jeweiligen KI-Agenten zu entnehmen. Beispiele (z.B. für _Mistral Vibe_) sind [in diesem Dokument](doc/configure-agents.md) zu finden.
+Wie die verschiedenen KI-Agenten für MCP konfiguriert werden, ist der Dokumentation des jeweiligen KI-Agenten zu entnehmen. Beispiele (z.B. für _Mistral Vibe_) sind im [Handbuch](https://github.com/mdzio/ccu-ai-mcp/wiki/Einbindung-in-KI-Agenten) zu finden.
 
 ## Lizenz und Haftungsausschluss
 

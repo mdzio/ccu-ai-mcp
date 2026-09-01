@@ -5,7 +5,8 @@ proc url_decode {str} {
   set str [string map -nocase [list "+" " "] $str]
   set result ""
   while {[regexp -indices {%([0-9A-Fa-f]{2})} $str match]} {
-    lassign $match start end
+    set start [lindex $match 0]
+    set end [lindex $match 1]
     append result [string range $str 0 [expr {$start - 1}]]
     set hex [string range $str [expr {$start + 1}] $end]
     append result [format "%c" 0x$hex]
@@ -33,7 +34,10 @@ proc get_sid {} {
 
 proc check_session sid {
   if {[regexp {@([0-9a-zA-Z]{10})@} $sid all sidnr]} {
-    set res [lindex [rega_script "Write(system.GetSessionVarStr('$sidnr'));"] 1]
+    if {[catch {rega_script "Write(system.GetSessionVarStr('$sidnr'));"} result]} {
+      return 0
+    }
+    set res [lindex $result 1]
     if {$res != ""} {
       return 1
     }
@@ -65,10 +69,10 @@ proc save_config {config_file new_apikey new_transport} {
   set fh [open $config_file r]
   set content [read $fh]
   close $fh
-  if {$new_apikey ne ""} {
+  if {$new_apikey != ""} {
     regsub {apiKey\s*=\s*'[^']*'} $content "apiKey = '$new_apikey'" content
   }
-  if {$new_transport ne ""} {
+  if {$new_transport != ""} {
     regsub {transport\s*=\s*'[^']*'} $content "transport = '$new_transport'" content
   }
   set fh [open $config_file w]
@@ -82,7 +86,7 @@ proc handle_post {config_file varname_apikey varname_transport} {
   upvar 1 $varname_apikey apikey
   upvar 1 $varname_transport transport
   set saved_msg 0
-  if {![info exists env(REQUEST_METHOD)] || $env(REQUEST_METHOD) ne "POST"} {
+  if {![info exists env(REQUEST_METHOD)] || $env(REQUEST_METHOD) != "POST"} {
     return
   }
   set cl $env(CONTENT_LENGTH)
@@ -97,12 +101,12 @@ proc handle_post {config_file varname_apikey varname_transport} {
       set new_transport [url_decode $val]
     }
   }
-  if {$new_apikey eq "" && $new_transport eq ""} {
+  if {$new_apikey == "" && $new_transport == ""} {
     return
   }
   if {[save_config $config_file $new_apikey $new_transport]} {
-    if {$new_apikey ne ""} { set apikey $new_apikey }
-    if {$new_transport ne ""} { set transport $new_transport }
+    if {$new_apikey != ""} { set apikey $new_apikey }
+    if {$new_transport != ""} { set transport $new_transport }
     set saved_msg 1
   }
 }
@@ -118,12 +122,13 @@ proc print_form {sid apikey transport port} {
   puts "<label for=\"transport\">Transport:</label>"
   set sel_http ""
   set sel_https ""
-  if {$transport eq "http"} { set sel_http " selected" }
-  if {$transport eq "https"} { set sel_https " selected" }
+  if {$transport == "http"} { set sel_http " selected" }
+  if {$transport == "https"} { set sel_https " selected" }
   puts "<select id=\"transport\" name=\"transport\"><option value=\"http\"$sel_http>HTTP</option><option value=\"https\"$sel_https>HTTPS</option></select>"
   puts "</div>"
   puts "<input type=\"submit\" value=\"Änderungen speichern\" class=\"btn\">"
   puts "</form>"
+  puts "<p style=\"font-size:12px;color:#666;background:none;padding:0;margin-top:10px;\">Änderungen werden erst wirksam, wenn der CCU-AI-MCP neu gestartet wird (Einstellungen &rarr; Systemsteuerung &rarr; Zusatzsoftware &rarr; Neustart).</p>"
   if {$saved_msg} {
     puts "<p id=\"msg\">Die Konfiguration wurde gespeichert.</p>"
     puts "<script>setTimeout(function(){var e=document.getElementById('msg');if(e)e.style.display='none';},3000);</script>"
@@ -175,12 +180,16 @@ set config_file "/usr/local/addons/ccu-ai-mcp/config.toml"
 
 print_html_header
 
-if {[info exists sid] && [check_session $sid]} {
-  read_config $config_file apikey transport port
-  handle_post $config_file apikey transport
-  print_form $sid $apikey $transport $port
-} else {
-  print_not_authenticated
+if {[catch {
+  if {[info exists sid] && [check_session $sid]} {
+    read_config $config_file apikey transport port
+    handle_post $config_file apikey transport
+    print_form $sid $apikey $transport $port
+  } else {
+    print_not_authenticated
+  }
+} err]} {
+  puts "<p>Fehler: $err</p>"
 }
 
 print_html_footer

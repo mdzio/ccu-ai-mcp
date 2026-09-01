@@ -1,6 +1,19 @@
 #!/bin/tclsh
 load tclrega.so
-package require ncgi
+
+proc url_decode {str} {
+  set str [string map -nocase [list "+" " "] $str]
+  set result ""
+  while {[regexp -indices {%([0-9A-Fa-f]{2})} $str match]} {
+    lassign $match start end
+    append result [string range $str 0 [expr {$start - 1}]]
+    set hex [string range $str [expr {$start + 1}] $end]
+    append result [format "%c" 0x$hex]
+    set str [string range $str [expr {$end + 1}] end]
+  }
+  append result $str
+  return $result
+}
 
 proc get_sid {} {
   global env
@@ -72,9 +85,18 @@ proc handle_post {config_file varname_apikey varname_transport} {
   if {![info exists env(REQUEST_METHOD)] || $env(REQUEST_METHOD) ne "POST"} {
     return
   }
-  ncgi::parse
-  set new_apikey [ncgi::value apikey]
-  set new_transport [ncgi::value transport]
+  set cl $env(CONTENT_LENGTH)
+  set post_data [read stdin $cl]
+  set new_apikey ""
+  set new_transport ""
+  foreach pair [split $post_data &] {
+    if {[regexp {^apikey=(.*)$} $pair dummy val]} {
+      set new_apikey [url_decode $val]
+    }
+    if {[regexp {^transport=(.*)$} $pair dummy val]} {
+      set new_transport [url_decode $val]
+    }
+  }
   if {$new_apikey eq "" && $new_transport eq ""} {
     return
   }

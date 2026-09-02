@@ -50,8 +50,15 @@ cp -af rc.d/* ${RCD_DIR}/
 # Copy www directory
 cp -af www/* ${WWW_DIR}/
 
-# Generate a unique API key, if it does not already exist.
+# Install default configuration, if it does not already exist. An existing
+# configuration is preserved across updates so that the generated apiKey and
+# any user changes are kept.
 CONFIG=${ADDON_DIR}/config.toml
+if [ ! -f ${CONFIG} ]; then
+  cp -af config.default.toml ${CONFIG}
+fi
+
+# Generate a unique API key, if it does not already exist.
 if grep -Eq "^apiKey\s*=\s*'GENERATE IT'" ${CONFIG} 2>/dev/null; then
   API_KEY=$(head -c 32 /dev/urandom | base64 | tr -d '/+=' | head -c 32)
   sed -Ei "s/^apiKey\s*=\s*'GENERATE IT'$/apiKey = '${API_KEY}'/" ${CONFIG}

@@ -133,13 +133,10 @@ proc print_form {sid apikey transport port} {
     puts "<p id=\"msg\">Die Konfiguration wurde gespeichert.</p>"
     puts "<script>setTimeout(function(){var e=document.getElementById('msg');if(e)e.style.display='none';},3000);</script>"
   }
-  puts "<h2>MCP-Client / Agent Konfiguration</h2>"
+  puts "<h2>MCP-Client- / Agent-Konfiguration</h2>"
   puts "<table>"
   puts "<tr><th>URL</th><td>${transport}://&lt;ccu-ip&gt;:${port}/mcp</td></tr>"
-  puts "<tr><th>Transport</th><td>${transport}</td></tr>"
-  puts "<tr><th>Port</th><td>${port}</td></tr>"
-  puts "<tr><th>API-Key</th><td>${apikey}</td></tr>"
-  puts "<tr><th>Authentifizierung</th><td>Bearer Token (API-Key)</td></tr>"
+  puts "<tr><th>HTTP-Header</th><td>Authorization: Bearer ${apikey}</td></tr>"
   puts "</table>"
 }
 
@@ -150,7 +147,7 @@ proc print_html_header {} {
   puts "<style>"
   puts "body { font-family: sans-serif; background: #e0f7f7; color: #333; margin: 0; padding: 40px 20px; }"
   puts "h1 { color: #008080; border-bottom: 3px solid #008080; padding-bottom: 10px; }"
-  puts ".container { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 8px; padding: 30px; box-shadow: 0 2px 8px rgba(0,128,128,0.15); }"
+  puts ".container { width: 50%; margin: 0 auto; background: #fff; border-radius: 8px; padding: 30px; box-shadow: 0 2px 8px rgba(0,128,128,0.15); }"
   puts "form { margin-top: 20px; }"
   puts ".form-group { margin-bottom: 20px; }"
   puts "label { display: block; font-weight: bold; margin-bottom: 6px; color: #006666; }"

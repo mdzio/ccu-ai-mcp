@@ -65,8 +65,8 @@ archives:
         dst: addon/VERSION
       - src: tools.toml
         dst: addon/tools.toml
-      - src: ccu-addon/addon/config.toml
-        dst: addon/config.toml
+      - src: ccu-addon/config.default.toml
+        dst: config.default.toml
       - src: ccu-addon/addon/update_hm_addons.tcl
         dst: addon/update_hm_addons.tcl
         info:

@@ -5,7 +5,7 @@ go 1.26
 require (
 	github.com/BurntSushi/toml v1.6.0
 	github.com/mark3labs/mcp-go v1.0.0
-	github.com/mdzio/go-hmccu/v2 v2.1.0
+	github.com/mdzio/go-hmccu/v2 v2.1.1
 )
 
 require (

@@ -19,9 +19,12 @@ var toolsLog = slog.With("component", "tools")
 func createTools() ([]server.ServerTool, error) {
 	// create script client
 	scriptClient := &script.Client{
-		Addr:     configMain.CCU.Address,
-		UserName: configMain.CCU.User,
-		Password: configMain.CCU.Password,
+		Addr:               configMain.CCU.Address,
+		UserName:           configMain.CCU.User,
+		Password:           configMain.CCU.Password,
+		UseTLS:             configMain.CCU.UseTLS,
+		InsecureSkipVerify: configMain.CCU.InsecureSkipVerify,
+		UseInternalPort:    configMain.CCU.UseInternalPort,
 	}
 
 	var serverTools []server.ServerTool

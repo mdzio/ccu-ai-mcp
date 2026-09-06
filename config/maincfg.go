@@ -65,9 +65,12 @@ type General struct {
 
 // CCU represents the [ccu] section.
 type CCU struct {
-	Address  string `toml:"address"`
-	User     string `toml:"user"`
-	Password string `toml:"password"`
+	Address            string `toml:"address"`
+	User               string `toml:"user"`
+	Password           string `toml:"password"`
+	UseTLS             bool   `toml:"useTLS"`
+	InsecureSkipVerify bool   `toml:"insecureSkipVerify"`
+	UseInternalPort    bool   `toml:"useInternalPort"`
 }
 
 // MCP represents the [mcp] section.

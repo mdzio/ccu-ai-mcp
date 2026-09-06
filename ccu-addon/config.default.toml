@@ -19,6 +19,15 @@ address = 'localhost'
 user = ''
 password = ''
 
+# Use TLS (HTTPS) for the connection to the CCU script client.
+useTLS = false
+
+# Skip verification of the CCU's TLS certificate.
+insecureSkipVerify = false
+
+# Bypass the CCU proxy server by using the internal port directly.
+useInternalPort = true
+
 [mcp]
 # Transport type for MCP communication. Valid values: stdio, http, https
 transport = 'https'

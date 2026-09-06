@@ -7,6 +7,7 @@ _CCU-AI-MCP_ ist eine Implementierung des [Model Context Protocols](https://de.w
 Folgende Funktionalitäten sind bei diesem MCP-Server für die CCU besonders hervorzuheben:
 * Einfache Erweiterbarkeit durch Anwender
 * Mehr Werkzeuge/Tools für das _Verständnis_ und das _Anpassen_ der Konfiguration und die Programmierung der CCU
+* Einfache Installation als Add-On auf der CCU
 
 Gegenüber anderen MCP-Servern, die einen festen Satz an Tools bereitstellen, können diese beim _CCU-AI-MCP_ einfach über die **Werkzeugkonfigurationsdatei `tools.toml` angepasst** und erweitert werden. An der _CCU_ selbst müssen keinerlei Einstellungen oder Anpassungen vorgenommen werden. Der Aufbau der Konfigurationsdatei ist relativ einfach und die Tools bestehen aus **HM-Skripten**, die zwar im _CCU-AI-MCP_ konfiguriert werden, aber **auf** der CCU ausgeführt werden. Besitzer einer CCU sind meistens schon in Kontakt mit HM-Skripten gekommen, sodass keine neue Programmiersprache erlernt werden muss. Zudem ermöglichen HM-Skripte den Zugriff auf die gesamte Projektierung und Konfiguration der CCU. Alle Skriptausgaben mit der Funktion `WriteLine()` werden automatisch an das LLM weitergeleitet.
 

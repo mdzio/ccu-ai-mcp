@@ -109,6 +109,10 @@ func serveHTTP(mcpServer *server.MCPServer, useTLS bool) error {
 	}()
 
 	// start serving
-	httpLog.Info("Starting MCP HTTP(S) server", "address", addr, "endpoint", "/mcp")
+	protocol := "HTTP"
+	if useTLS {
+		protocol = "HTTPS"
+	}
+	httpLog.Info("Starting MCP "+protocol+" server", "address", addr, "endpoint", "/mcp")
 	return httpServer.Start(addr)
 }

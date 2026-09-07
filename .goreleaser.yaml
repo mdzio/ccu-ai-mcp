@@ -47,7 +47,7 @@ archives:
       - tools.toml
       - src: tmp/VERSION
         dst: VERSION
-      - src: config.template.toml
+      - src: build/generic/config.template.toml
         dst: config.toml
   - id: ccu-addon
     ids:
@@ -65,23 +65,23 @@ archives:
         dst: addon/VERSION
       - src: tools.toml
         dst: addon/tools.toml
-      - src: ccu-addon/config.default.toml
+      - src: build/ccu-addon/config.default.toml
         dst: config.default.toml
-      - src: ccu-addon/addon/update_hm_addons.tcl
+      - src: build/ccu-addon/addon/update_hm_addons.tcl
         dst: addon/update_hm_addons.tcl
         info:
           mode: 0755
-      - src: ccu-addon/rc.d/ccu-ai-mcp
+      - src: build/ccu-addon/rc.d/ccu-ai-mcp
         dst: rc.d/ccu-ai-mcp
         info:
           mode: 0755
-      - src: ccu-addon/update_script
+      - src: build/ccu-addon/update_script
         dst: update_script
         info:
           mode: 0755
-      - src: ccu-addon/www/config.cgi
+      - src: build/ccu-addon/www/config.cgi
         dst: www/config.cgi
-      - src: ccu-addon/www/update-check.cgi
+      - src: build/ccu-addon/www/update-check.cgi
         dst: www/update-check.cgi
 
 release:

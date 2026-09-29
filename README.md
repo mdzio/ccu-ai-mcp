@@ -9,7 +9,7 @@ Folgende Funktionalitäten sind bei diesem MCP-Server für die CCU besonders her
 * Mehr Werkzeuge/Tools für das _Verständnis_ und das _Anpassen_ der Konfiguration und die Programmierung der CCU
 * Einfache Installation als Add-On auf der CCU
 
-Gegenüber anderen MCP-Servern, die einen festen Satz an Tools bereitstellen, können diese beim _CCU-AI-MCP_ einfach über die **Werkzeugkonfigurationsdatei `tools.toml` angepasst** und erweitert werden. An der _CCU_ selbst müssen keinerlei Einstellungen oder Anpassungen vorgenommen werden. Der Aufbau der Konfigurationsdatei ist relativ einfach und die Tools bestehen aus **HM-Skripten**, die zwar im _CCU-AI-MCP_ konfiguriert werden, aber **auf** der CCU ausgeführt werden. Besitzer einer CCU sind meistens schon in Kontakt mit HM-Skripten gekommen, sodass keine neue Programmiersprache erlernt werden muss. Zudem ermöglichen HM-Skripte den Zugriff auf die gesamte Projektierung und Konfiguration der CCU. Alle Skriptausgaben mit der Funktion `WriteLine()` werden automatisch an das LLM weitergeleitet.
+Gegenüber anderen MCP-Servern, die einen festen Satz an Tools bereitstellen, können diese beim _CCU-AI-MCP_ einfach über die **Werkzeugkonfigurationsdatei `tools.toml` angepasst** und erweitert werden. An der _CCU_ selbst müssen keinerlei Einstellungen oder Anpassungen vorgenommen werden. Der Aufbau der Konfigurationsdatei ist relativ einfach und die Tools können aus **HM-Skripten** oder **Shell-Skripten** bestehen, die zwar im _CCU-AI-MCP_ konfiguriert werden, aber **auf** der CCU ausgeführt werden. Besitzer einer CCU sind meistens schon in Kontakt mit HM-Skripten gekommen, sodass keine neue Programmiersprache erlernt werden muss. Zudem ermöglichen HM-Skripte den Zugriff auf die gesamte Projektierung und Konfiguration der CCU. Shell-Skripte ermöglichen zusätzlich den Zugriff auf das unterliegende BusyBox-Betriebssystem der CCU, was z. B. für das Auslesen von Log-Dateien zwecks Fehleranalyse genutzt werden kann (nur bei Installation als Add-on auf der CCU). Alle Skriptausgaben (bei HM-Skripten über die Funktion `WriteLine()`, bei Shell-Skripten über die Standard- und Fehlerausgabe) werden automatisch an das LLM weitergeleitet.
 
 Ein besonderer Schwerpunkt wird auch auf das **Auslesen** und die **Anpassung** der **CCU-Projektierung** gelegt. Dadurch kann die KI die aktuelle Projektierung zwecks Überprüfung noch einmal detailliert erklären, Inkonsistenzen suchen oder auch Bennungen verbessern. Schnell kann man sich ein Überblick über eine fremde CCU (z.B. von einem Freund) verschaffen und nach Projektierungsfehlern suchen.
 
@@ -47,6 +47,7 @@ Folgende Werkzeuge/Tools werden vom _CCU-AI-MCP_ für die KI bereit gestellt:
 * `read_alarm_messages` – Liest aktive Alarmsystemvariablen
 * `read_system_info` – Gibt Systeminformationen der CCU zurück, u.a. Firmware-Version, Dateisystem, Uptime und RAM-Nutzung
 * `execute_script` – Führt ein beliebiges HomeMatic-Skript auf der CCU aus
+* `read_ccu_log` – Liest die Log-Dateien des CCU-Betriebssystems zwecks Fehleranalyse (Shell-Skript, nur bei Installation als Add-on)
 
 ## Projektstatus
 

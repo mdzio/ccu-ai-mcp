@@ -8,18 +8,20 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-// ToolKind represents the type of a tool (e.g. HM-SCRIPT, XML-RPC).
+// ToolKind represents the type of a tool (e.g. HM-SCRIPT, XML-RPC, Shell-Script).
 type ToolKind int
 
 const (
 	HMScript ToolKind = iota
+	ShellScript
 	XMLRPC
 )
 
 var (
 	toolKindStr = []string{
-		HMScript: "hm-script",
-		XMLRPC:   "xml-rpc",
+		HMScript:    "hm-script",
+		ShellScript: "shell-script",
+		XMLRPC:      "xml-rpc",
 	}
 	errToolKind = errors.New("invalid tool kind identifier")
 )

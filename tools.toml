@@ -1084,3 +1084,48 @@ name = "newDescription"
 description = "New description for the program"
 type = "string"
 optional = true
+
+# -----------------------------------------------------------------------------
+[[tool]]
+name = 'read_ccu_log'
+description = '''
+Reads the last lines of a log file of the CCU operating system for troubleshooting.
+Available log files: 'messages' (system log with entries of all CCU services, default) and
+'hmserver' (log of the HmIP server). Optionally, only lines matching a search pattern are
+returned. The log lines are returned in chronological order. This tool is only available,
+if CCU-AI-MCP is installed as add-on on the CCU.
+'''
+kind = 'shell-script'
+enabled = true
+script = '''
+LOG={{ .log | shq }}
+case "$LOG" in
+  ''|messages) FILE=/var/log/messages ;;
+  hmserver) FILE=/var/log/hmserver.log ;;
+  *) echo "ERROR: Unknown log file '$LOG', use 'messages' or 'hmserver'."; exit 1 ;;
+esac
+if [ ! -r "$FILE" ]; then
+  echo "ERROR: Log file $FILE not found or not readable."
+  exit 1
+fi
+LINES={{ if .lines }}{{ .lines | shq }}{{ else }}100{{ end }}
+{{ if .pattern }}grep -i -- {{ .pattern | shq }} "$FILE" | tail -n "$LINES"{{ else }}tail -n "$LINES" "$FILE"{{ end }}
+'''
+
+[[tool.parameter]]
+name = "log"
+description = "Log file to read: 'messages' (default) or 'hmserver'"
+type = "string"
+optional = true
+
+[[tool.parameter]]
+name = "lines"
+description = "Maximum number of lines to return from the end of the log file (default: 100)"
+type = "integer"
+optional = true
+
+[[tool.parameter]]
+name = "pattern"
+description = "Case-insensitive search pattern (basic regular expression); only matching log lines are returned"
+type = "string"
+optional = true

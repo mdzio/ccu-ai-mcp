@@ -33,6 +33,9 @@ Rules are evaluated in order. The actions of a rule are executed only if its con
 conditions. Once the first matching rule is found, its actions are executed, and no further rules are evaluated. First match wins!
 Condition groups consist of individual conditions. Both condition groups and the individual conditions within a group can be 
 combined using AND and OR operators.
+In the YAML output of the `read_program` tool, the `groupOperator` of a condition group always defines the operator linking that 
+group to the next group in the list. Likewise, the `conditionOperator` of a condition always defines the operator linking that 
+condition to the next condition within the group. Consequently, the operator of the last group or last condition has no effect.
 
 The "astronomical daytime" time range means that the timer is active from sunrise to sunset. The "astronomical nighttime" time 
 range means that the timer is active from sunset to sunrise.

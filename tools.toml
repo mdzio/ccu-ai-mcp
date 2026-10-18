@@ -622,7 +622,7 @@ WriteLine(stdout.Trim());
 name = 'execute_hm_script'
 description = 'Executes an arbitrary HomeMatic script on the CCU. The output from Write() and WriteLine() calls is forwarded to the LLM.'
 kind = 'hm-script'
-enabled = true
+enabled = false
 script = '''
 ! Executing user script
 WriteLine("--- SCRIPT OUTPUT START ---");
@@ -1087,35 +1087,50 @@ optional = true
 
 # -----------------------------------------------------------------------------
 [[tool]]
-name = 'read_ccu_log'
+name = 'list_log_files'
 description = '''
-Reads the last lines of a log file of the CCU operating system for troubleshooting.
-Available log files: 'messages' (system log with entries of all CCU services, default) and
-'hmserver' (log of the HmIP server). Optionally, only lines matching a search pattern are
-returned. The log lines are returned in chronological order.
+Lists all files in the log directory /var/log of the CCU operating system. Returns the
+file names including size and modification time. Use the tool read_log_file to read the
+content of one of these files.
 '''
 kind = 'shell-script'
 enabled = true
 script = '''
-LOG={{ .log | shq }}
-case "$LOG" in
-  ''|messages) FILE=/var/log/messages ;;
-  hmserver) FILE=/var/log/hmserver.log ;;
-  *) echo "ERROR: Unknown log file '$LOG', use 'messages' or 'hmserver'."; exit 1 ;;
+ls -la /var/log
+'''
+
+# -----------------------------------------------------------------------------
+[[tool]]
+name = 'read_log_file'
+description = '''
+Reads the last lines of a log file in the directory /var/log of the CCU operating system
+for troubleshooting. Optionally, only lines matching a search pattern (extended regular
+expression) are returned. The log lines are returned in chronological order.
+'''
+kind = 'shell-script'
+enabled = true
+script = '''
+NAME={{ .file | shq }}
+case "$NAME" in
+  ''|*/*|*..*)
+    echo "ERROR: Invalid file name '$NAME', use a plain file name without path."
+    exit 1
+    ;;
 esac
+FILE=/var/log/$NAME
 if [ ! -r "$FILE" ]; then
   echo "ERROR: Log file $FILE not found or not readable."
   exit 1
 fi
 LINES={{ if .lines }}{{ .lines | shq }}{{ else }}100{{ end }}
-{{ if .pattern }}grep -i -- {{ .pattern | shq }} "$FILE" | tail -n "$LINES"{{ else }}tail -n "$LINES" "$FILE"{{ end }}
+{{ if .pattern }}grep -i -E -- {{ .pattern | shq }} "$FILE" | tail -n "$LINES"{{ else }}tail -n "$LINES" "$FILE"{{ end }}
 '''
 
 [[tool.parameter]]
-name = "log"
-description = "Log file to read: 'messages' (default) or 'hmserver'"
+name = "file"
+description = "Name of the log file to read, as listed by the tool list_log_files (e.g. 'messages')"
 type = "string"
-optional = true
+optional = false
 
 [[tool.parameter]]
 name = "lines"
@@ -1125,7 +1140,7 @@ optional = true
 
 [[tool.parameter]]
 name = "pattern"
-description = "Case-insensitive search pattern (basic regular expression); only matching log lines are returned"
+description = "Case-insensitive search pattern (extended regular expression); only matching log lines are returned"
 type = "string"
 optional = true
 
@@ -1138,7 +1153,7 @@ and error output is forwarded to the LLM. Use this tool with caution, it can
 access and modify the whole operating system of the CCU.
 '''
 kind = 'shell-script'
-enabled = true
+enabled = false
 script = '''
 {{ .script }}
 '''

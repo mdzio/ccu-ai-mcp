@@ -1122,7 +1122,7 @@ if [ ! -r "$FILE" ]; then
   echo "ERROR: Log file $FILE not found or not readable."
   exit 1
 fi
-LINES={{ if .lines }}{{ .lines | shq }}{{ else }}100{{ end }}
+LINES={{ if .lines }}{{ .lines | shq }}{{ else }}50{{ end }}
 {{ if .pattern }}grep -i -E -- {{ .pattern | shq }} "$FILE" | tail -n "$LINES"{{ else }}tail -n "$LINES" "$FILE"{{ end }}
 '''
 
@@ -1134,7 +1134,7 @@ optional = false
 
 [[tool.parameter]]
 name = "lines"
-description = "Maximum number of lines to return from the end of the log file (default: 100)"
+description = "Maximum number of lines to return from the end of the log file (default: 50)"
 type = "integer"
 optional = true
 

@@ -50,7 +50,7 @@ func createTools() ([]server.ServerTool, error) {
 
 		toolsLog.Debug("Creating tool", "name", toolCfg.Name, "kind", toolCfg.Kind)
 		if toolCfg.Kind == config.ShellScript && !configMain.CCU.OnCCU {
-			toolsLog.Warn("Skipping shell script tool, shell scripts can only be executed, if the MCP server runs on the CCU itself", "name", toolCfg.Name)
+			toolsLog.Warn("Skipping shell script tool, MCP server runs not on the CCU", "name", toolCfg.Name)
 			continue
 		}
 

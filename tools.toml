@@ -619,7 +619,7 @@ WriteLine(stdout.Trim());
 
 # -----------------------------------------------------------------------------
 [[tool]]
-name = 'execute_script'
+name = 'execute_hm_script'
 description = 'Executes an arbitrary HomeMatic script on the CCU. The output from Write() and WriteLine() calls is forwarded to the LLM.'
 kind = 'hm-script'
 enabled = true
@@ -665,7 +665,7 @@ if (eobj) {
 
 # -----------------------------------------------------------------------------
 [[tool]]
-name = 'execute_program'
+name = 'execute_hm_program'
 description = 'Executes a program on the CCU.'
 kind = 'hm-script'
 enabled = true
@@ -1092,8 +1092,7 @@ description = '''
 Reads the last lines of a log file of the CCU operating system for troubleshooting.
 Available log files: 'messages' (system log with entries of all CCU services, default) and
 'hmserver' (log of the HmIP server). Optionally, only lines matching a search pattern are
-returned. The log lines are returned in chronological order. This tool is only available,
-if CCU-AI-MCP is installed as add-on on the CCU.
+returned. The log lines are returned in chronological order.
 '''
 kind = 'shell-script'
 enabled = true
@@ -1129,3 +1128,22 @@ name = "pattern"
 description = "Case-insensitive search pattern (basic regular expression); only matching log lines are returned"
 type = "string"
 optional = true
+
+# -----------------------------------------------------------------------------
+[[tool]]
+name = 'execute_shell_script'
+description = '''
+Executes an arbitrary shell script (BusyBox shell) on the CCU. The standard
+and error output is forwarded to the LLM. Use this tool with caution, it can
+access and modify the whole operating system of the CCU.
+'''
+kind = 'shell-script'
+enabled = true
+script = '''
+{{ .script }}
+'''
+
+[[tool.parameter]]
+name = "script"
+description = "Shell script to execute"
+type = "string"

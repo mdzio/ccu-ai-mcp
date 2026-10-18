@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"os"
 	"os/exec"
 	"strings"
@@ -37,52 +36,6 @@ func TestShellQuote(t *testing.T) {
 	}
 }
 
-func TestIsLocalAddress(t *testing.T) {
-	cases := []struct {
-		addr string
-		want bool
-	}{
-		{"localhost", true},
-		{"LOCALHOST", true},
-		{"localhost:2001", true},
-		{"127.0.0.1", true},
-		{"127.0.0.1:8181", true},
-		{"127.1.2.3", true},
-		{"::1", true},
-		{"[::1]:8181", true},
-		{"homematic-raspi", false},
-		{"192.168.1.10", false},
-		{"192.168.1.10:8181", false},
-		{"ccu.local", false},
-		{"", false},
-	}
-	for _, c := range cases {
-		if got := isLocalAddress(c.addr); got != c.want {
-			t.Errorf("isLocalAddress(%q) = %v, want %v", c.addr, got, c.want)
-		}
-	}
-}
-
-func TestLimitedBuffer(t *testing.T) {
-	b := &limitedBuffer{limit: 5}
-	if n, err := b.Write([]byte("abc")); n != 3 || err != nil {
-		t.Fatalf("Write returned %d, %v", n, err)
-	}
-	if b.truncated {
-		t.Fatal("buffer must not be truncated yet")
-	}
-	if n, err := b.Write([]byte("defgh")); n != 5 || err != nil {
-		t.Fatalf("Write returned %d, %v", n, err)
-	}
-	if !b.truncated || b.String() != "abcde" {
-		t.Fatalf("got %q (truncated=%v), want \"abcde\" (truncated=true)", b.String(), b.truncated)
-	}
-	// further writes are discarded
-	if n, err := b.Write([]byte("xyz")); n != 3 || err != nil || b.String() != "abcde" {
-		t.Fatalf("got %q, %d, %v", b.String(), n, err)
-	}
-}
-
 func TestHandleShellScript(t *testing.T) {
 	if _, err := exec.LookPath("sh"); err != nil {
 		t.Skip("sh not available")
@@ -91,13 +44,12 @@ func TestHandleShellScript(t *testing.T) {
 		t.Skipf("%s not available", shellScriptDir)
 	}
 
-	toolCfg := config.Tool{Name: "test", Kind: config.ShellScript}
 	templ := template.Must(template.New("test").Funcs(shellFuncs).Parse(
 		"pwd\necho {{ .msg | shq }}\necho to stderr >&2\nexit {{ .code | shq }}\n"))
 	call := func(msg string, code float64) *mcp.CallToolResult {
 		req := mcp.CallToolRequest{}
 		req.Params.Arguments = map[string]any{"msg": msg, "code": code}
-		res, err := handleShellScript(context.Background(), toolCfg, templ, req)
+		res, err := handleShellScript(templ, req)
 		if err != nil {
 			t.Fatalf("handler returned error: %v", err)
 		}

@@ -20,9 +20,9 @@ const (
 
 var (
 	transportStr = []string{
-		STDIO:  "stdio",
-		HTTP:   "http",
-		HTTPS:  "https",
+		STDIO: "stdio",
+		HTTP:  "http",
+		HTTPS: "https",
 	}
 	errTransport = errors.New("invalid transport identifier")
 )
@@ -59,13 +59,14 @@ type Main struct {
 
 // General represents the [general] section.
 type General struct {
-	LogLevel      slog.Level `toml:"logLevel"`
-	ToolFile string `toml:"toolFile"`
+	LogLevel slog.Level `toml:"logLevel"`
+	ToolFile string     `toml:"toolFile"`
 }
 
 // CCU represents the [ccu] section.
 type CCU struct {
 	Address            string `toml:"address"`
+	OnCCU              bool   `toml:"onCCU"`
 	User               string `toml:"user"`
 	Password           string `toml:"password"`
 	UseTLS             bool   `toml:"useTLS"`

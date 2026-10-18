@@ -6,12 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"net"
 	"os/exec"
 	"strconv"
 	"strings"
 	"text/template"
-	"time"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -22,12 +20,6 @@ import (
 const (
 	// working directory for shell scripts on the CCU
 	shellScriptDir = "/tmp"
-	// maximum execution time of a shell script
-	shellScriptTimeout = 60 * time.Second
-	// maximum size of the captured output of a shell script
-	shellOutputLimit = 1024 * 1024
-	// grace period after killing a shell script for closing the output pipes
-	shellWaitDelay = 5 * time.Second
 )
 
 var toolsLog = slog.With("component", "tools")
@@ -49,10 +41,6 @@ func createTools() ([]server.ServerTool, error) {
 		UseInternalPort:    configMain.CCU.UseInternalPort,
 	}
 
-	// shell scripts can only be executed, if the server runs on the CCU itself
-	// (e.g. installed as add-on)
-	localCCU := isLocalAddress(configMain.CCU.Address)
-
 	var serverTools []server.ServerTool
 	for _, toolCfg := range configTools.Tools {
 		// only enabled tools
@@ -61,8 +49,8 @@ func createTools() ([]server.ServerTool, error) {
 		}
 
 		toolsLog.Debug("Creating tool", "name", toolCfg.Name, "kind", toolCfg.Kind)
-		if toolCfg.Kind == config.ShellScript && !localCCU {
-			toolsLog.Warn("Skipping shell script tool, shell scripts can only be executed on the CCU itself", "name", toolCfg.Name)
+		if toolCfg.Kind == config.ShellScript && !configMain.CCU.OnCCU {
+			toolsLog.Warn("Skipping shell script tool, shell scripts can only be executed, if the MCP server runs on the CCU itself", "name", toolCfg.Name)
 			continue
 		}
 
@@ -120,14 +108,23 @@ func createTools() ([]server.ServerTool, error) {
 		switch toolCfg.Kind {
 		case config.HMScript:
 			handler = func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-				return handleHMScript(toolCfg, templ, scriptClient, request)
+				return handleHMScript(templ, scriptClient, request)
 			}
 		case config.ShellScript:
 			handler = func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-				return handleShellScript(ctx, toolCfg, templ, request)
+				return handleShellScript(templ, request)
 			}
 		default:
 			return nil, fmt.Errorf("unsupported tool kind %s in tool %s", toolCfg.Kind, toolCfg.Name)
+		}
+
+		// wrap the handler, so that every tool call is logged with its
+		// name and parameters
+		toolName := toolCfg.Name
+		toolHandler := handler
+		handler = func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			toolsLog.Debug("MCP tool call received", append([]any{"name", toolName}, mapAsSlice(request.GetArguments())...)...)
+			return toolHandler(ctx, request)
 		}
 
 		// add to server tools slice
@@ -140,13 +137,9 @@ func createTools() ([]server.ServerTool, error) {
 }
 
 // handleHMScript executes a HM script tool on the CCU.
-func handleHMScript(toolCfg config.Tool, templ *template.Template, scriptClient *script.Client, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	toolsLog.Debug("Executing HM script tool", "name", toolCfg.Name)
-
+func handleHMScript(templ *template.Template, scriptClient *script.Client, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	// fill the script template with the parameters of the MCP call
-	params := request.GetArguments()
-	toolsLog.Debug("Filling HM script template with parameters", mapAsSlice(params)...)
-	scriptText, err := fillTemplate(templ, params)
+	scriptText, err := fillTemplate(templ, request.GetArguments())
 	if err != nil {
 		return mcp.NewToolResultErrorFromErr("Rendering of the HM script template failed", err), nil
 	}
@@ -174,27 +167,21 @@ func handleHMScript(toolCfg config.Tool, templ *template.Template, scriptClient 
 }
 
 // handleShellScript executes a shell script tool locally on the CCU.
-func handleShellScript(ctx context.Context, toolCfg config.Tool, templ *template.Template, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	toolsLog.Debug("Executing shell script tool", "name", toolCfg.Name)
-
+func handleShellScript(templ *template.Template, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	// fill the script template with the parameters of the MCP call
-	params := request.GetArguments()
-	toolsLog.Debug("Filling shell script template with parameters", mapAsSlice(params)...)
-	scriptText, err := fillTemplate(templ, params)
+	scriptText, err := fillTemplate(templ, request.GetArguments())
 	if err != nil {
 		return textResult("ERROR: Rendering of the shell script template failed: "+err.Error(), true), nil
 	}
 
-	// execute the script with a timeout in the working directory /tmp, stdout
-	// and stderr are captured into the same buffer to preserve their order
-	ctx, cancel := context.WithTimeout(ctx, shellScriptTimeout)
-	defer cancel()
-	output := &limitedBuffer{limit: shellOutputLimit}
-	cmd := exec.CommandContext(ctx, "sh", "-c", scriptText)
+	// execute the script in the working directory /tmp, stdout and stderr
+	// are captured into the same buffer to preserve their order
+	toolsLog.Debug("Executing shell script", "script", scriptText)
+	var output bytes.Buffer
+	cmd := exec.Command("sh", "-c", scriptText)
 	cmd.Dir = shellScriptDir
-	cmd.Stdout = output
-	cmd.Stderr = output
-	cmd.WaitDelay = shellWaitDelay
+	cmd.Stdout = &output
+	cmd.Stderr = &output
 	err = cmd.Run()
 
 	// build result text, an error description is prepended if the execution
@@ -203,10 +190,6 @@ func handleShellScript(ctx context.Context, toolCfg config.Tool, templ *template
 	var exitErr *exec.ExitError
 	switch {
 	case err == nil:
-	case errors.Is(ctx.Err(), context.DeadlineExceeded):
-		fmt.Fprintf(&sb, "ERROR: Shell script timed out after %v\n", shellScriptTimeout)
-	case ctx.Err() != nil:
-		sb.WriteString("ERROR: Shell script execution was cancelled\n")
 	case errors.As(err, &exitErr):
 		fmt.Fprintf(&sb, "ERROR: Shell script failed with exit code %d\n", exitErr.ExitCode())
 	default:
@@ -217,9 +200,14 @@ func handleShellScript(ctx context.Context, toolCfg config.Tool, templ *template
 	} else {
 		sb.Write(output.Bytes())
 	}
-	if output.truncated {
-		fmt.Fprintf(&sb, "\n[Output truncated after %d bytes]", shellOutputLimit)
+	// exit code of the script, -1 if it could not be determined
+	exitCode := 0
+	if exitErr != nil {
+		exitCode = exitErr.ExitCode()
+	} else if err != nil {
+		exitCode = -1
 	}
+	toolsLog.Debug("Shell script response", "response", sb.String(), "exitCode", exitCode)
 	return textResult(sb.String(), err != nil), nil
 }
 
@@ -256,44 +244,12 @@ func shellQuote(v any) string {
 	return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'"
 }
 
-// isLocalAddress returns true, if the address (optionally with port) refers to
-// the local host.
-func isLocalAddress(addr string) bool {
-	host := addr
-	if h, _, err := net.SplitHostPort(addr); err == nil {
-		host = h
-	}
-	if ip := net.ParseIP(host); ip != nil {
-		return ip.IsLoopback()
-	}
-	return strings.EqualFold(host, "localhost")
-}
-
 // textResult creates a tool result with a single text content.
 func textResult(text string, isError bool) *mcp.CallToolResult {
 	if isError {
 		return mcp.NewToolResultError(text)
 	}
 	return mcp.NewToolResultText(text)
-}
-
-// limitedBuffer collects written data up to a limit and silently discards the
-// rest.
-type limitedBuffer struct {
-	bytes.Buffer
-	limit     int
-	truncated bool
-}
-
-// Write implements io.Writer.
-func (b *limitedBuffer) Write(p []byte) (int, error) {
-	if room := b.limit - b.Len(); len(p) > room {
-		b.Buffer.Write(p[:room])
-		b.truncated = true
-	} else {
-		b.Buffer.Write(p)
-	}
-	return len(p), nil
 }
 
 // mapAsSlice converts a map[string]any to []any for slog

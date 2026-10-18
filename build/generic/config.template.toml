@@ -11,10 +11,12 @@ logLevel = 'INFO'
 toolFile = 'tools.toml'
 
 [ccu]
-# Specifies the IP address or hostname of the CCU. Tools of kind shell-script
-# are only available, if the server runs on the CCU itself (address is
-# localhost, e.g. when installed as add-on).
+# Specifies the IP address or hostname of the CCU.
 address = 'homematic-raspi'
+
+# Set to true, if the server runs on the CCU itself (e.g. installed as add-on).
+# Only then tools of kind shell-script are available.
+onCCU = false
 
 # If authentication for the CCU network API is active, specify the user and
 # password. Otherwise, leave them empty.

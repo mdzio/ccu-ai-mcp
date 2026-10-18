@@ -29,7 +29,7 @@ Folgende Werkzeuge/Tools werden vom _CCU-AI-MCP_ für die KI bereit gestellt:
 * `list_programs` – Listet alle CCU-Programme mit Eigenschaften und letzter Ausführung
 * `read_program` – Liest alle Eigenschaften, Regeln, Bedingungen, Zeitgebener und Aktionen eines CCU-Programms
 * `update_program` – Aktualisiert Eigenschaften eines CCU-Programms (z. B. Name, Beschreibung, aktiv, sichtbar, bedienbar)
-* `execute_program` – Führt ein CCU-Programm aus
+* `execute_hm_program` – Führt ein CCU-Programm aus
 * `list_system_variables` – Listet alle Systemvariablen mit Eigenschaften inkl. Referenzen zu Programmen
 * `update_system_variable` – Aktualisiert Eigenschaften einer CCU-Systemvariablen (z. B. Name, Beschreibung)
 * `list_devices` – Listet alle Geräte mit Typ und Adresse
@@ -46,8 +46,9 @@ Folgende Werkzeuge/Tools werden vom _CCU-AI-MCP_ für die KI bereit gestellt:
 * `read_service_messages` – Liest aktive Servicemeldungen (z. B. Batterie leer)
 * `read_alarm_messages` – Liest aktive Alarmsystemvariablen
 * `read_system_info` – Gibt Systeminformationen der CCU zurück, u.a. Firmware-Version, Dateisystem, Uptime und RAM-Nutzung
-* `execute_script` – Führt ein beliebiges HomeMatic-Skript auf der CCU aus
+* `execute_hm_script` – Führt ein beliebiges HomeMatic-Skript auf der CCU aus
 * `read_ccu_log` – Liest die Log-Dateien des CCU-Betriebssystems zwecks Fehleranalyse (Shell-Skript, nur bei Installation als Add-on)
+* `execute_shell_script` – Führt ein beliebiges Shell-Skript (BusyBox-Shell) auf der CCU aus; mit Vorsicht zu verwenden, da es Zugriff auf das gesamte Betriebssystem der CCU hat (Shell-Skript, nur bei Installation als Add-on)
 
 ## Projektstatus
 

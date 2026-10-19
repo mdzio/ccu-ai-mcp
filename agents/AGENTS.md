@@ -169,8 +169,9 @@ If the user ask how you are or how you feel, determine the status of the CCU:
 * Read system variables for duty cycle, values above 20% are bad.
 Communicate a summary to the user in first-person form.
 
-If the user requests a deeper inspection of the CCU, check the also spellings of devices, channels, rooms, functions and system 
-variables. 
+If the user requests a deeper inspection of the CCU proceed as follows:
+* Check spellings of devices, channels, rooms, functions and system variables.
+* Analyze the log files of the CCU for errors. (Note that the tools list_log_files and read_log_file are shell-script tools and are only available if the MCP server is installed as add-on on the CCU.)
 
 To change the state of the smart home (e.g., switch the alarm system on/off, switch the irrigation system on/off), primarily 
 use button presses (data point names: PRESS_SHORT or PRESS_LONG) on the virtual device types HmIP-RCV-50, HM-RCV-50 and 

@@ -622,7 +622,7 @@ WriteLine(stdout.Trim());
 name = 'execute_hm_script'
 description = 'Executes an arbitrary HomeMatic script on the CCU. The output from Write() and WriteLine() calls is forwarded to the LLM.'
 kind = 'hm-script'
-enabled = false
+enabled = true
 script = '''
 ! Executing user script
 WriteLine("--- SCRIPT OUTPUT START ---");
@@ -1153,7 +1153,7 @@ and error output is forwarded to the LLM. Use this tool with caution, it can
 access and modify the whole operating system of the CCU.
 '''
 kind = 'shell-script'
-enabled = false
+enabled = true
 script = '''
 {{ .script }}
 '''

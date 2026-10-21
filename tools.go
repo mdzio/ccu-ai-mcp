@@ -178,7 +178,7 @@ func handleShellScript(templ *template.Template, request mcp.CallToolRequest) (*
 	// are captured into the same buffer to preserve their order
 	toolsLog.Debug("Executing shell script", "script", scriptText)
 	var output bytes.Buffer
-	cmd := exec.Command("sh", "-c", scriptText)
+	cmd := exec.Command("/bin/sh", "-c", scriptText)
 	cmd.Dir = shellScriptDir
 	cmd.Stdout = &output
 	cmd.Stderr = &output

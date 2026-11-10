@@ -122,7 +122,7 @@ string id; foreach(id,"{{range $i, $e := .iseids}}{{if $i}}\t{{end}}{{$e}}{{end}
 		if (dp.IsTypeOf(OT_DP) || dp.IsTypeOf(OT_VARDP) || dp.IsTypeOf(OT_ALARMDP)) {
 			WriteLine("| " # id # " | OK | " # dp.Value().ToString().Replace("\n", "<br>") # " | " # dp.Timestamp() # " |");
 		} else {
-			WriteLine("| " # id # " | ERROR: Object has wrong type |  |  |");
+			WriteLine("| " # id # " | ERROR: Object is not of type DP, VARDP or ALARMDP |  |  |");
 		}
 	} else {
 		WriteLine("| " # id # " | ERROR: ISEID not found |  |  |");
